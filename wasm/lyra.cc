@@ -22,6 +22,7 @@ EMSCRIPTEN_BINDINGS(lyra_encoder) {
   function("returnBytes", &returnBytes);
 
   class_<LyraEncoder>("LyraEncoder")
+    .class_function("CreateWithRoot", &LyraEncoder::CreateWithRoot)
     .class_function("CreateFromBuffers", &LyraEncoder::CreateFromBuffers)
     .function("Encode", &LyraEncoder::Encode);
     // .function("Encode", &LyraEncoder::Encode,
