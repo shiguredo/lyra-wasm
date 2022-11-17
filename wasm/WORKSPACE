@@ -5,7 +5,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_r
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-local_repository(name = "lyra", path = ".")
+local_repository(name = "lyra", path = "lyra/")
 
 # proto_library, cc_proto_library, and java_proto_library rules implicitly
 # depend on @com_google_protobuf for protoc and proto runtimes.
@@ -35,6 +35,31 @@ new_git_repository(
     remote = "https://github.com/gulrak/filesystem.git",
     tag = "v1.3.6",
     build_file_content = FILESYSTEM_BUILD
+)
+
+# Audio DSP
+git_repository(
+    name = "com_google_audio_dsp",
+    # TODO(b/231448719) use main google repo after merging PR for TF eigen compatibility.
+    remote = "https://github.com/mchinen/multichannel-audio-tools.git",
+    # There are no tags for this repo, we are synced to bleeding edge.
+    commit = "14a45c5a7c965e5ef01fe537bd816ce10a247813",
+    repo_mapping = {
+        "@com_github_glog_glog" : "@com_google_glog",
+        "@eigen3": "@eigen_archive"
+    }
+)
+
+# Transitive dependencies of Audio DSP.
+# Note: eigen is used by Audio DSP, but provided through tensorflow workspace functions.
+
+http_archive(
+    name = "fft2d",
+    build_file = "fft2d.BUILD",
+    sha256 = "ada7e99087c4ed477bfdf11413f2ba8db8a840ba9bbf8ac94f4f3972e2a7cec9",
+    urls = [
+        "http://www.kurims.kyoto-u.ac.jp/~ooura/fft2d.tgz",
+    ],
 )
 
 # Google logging
@@ -94,7 +119,8 @@ workspace2()
 ##################
 # Emscripten SDK #
 ##################
-local_repository(name = "emsdk", path = ".")
+# TODO: Refer github repository
+local_repository(name = "emsdk", path = "emsdk/bazel/")
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
 emsdk_deps()
 
