@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <meta http-equiv="origin-trial" content="AgzZrbX4jBphRIVHd0mDLyV2c3zKrVzGq/wTUydsSAQqv2njX1U5BCFPiKHSvZsS0LXfsGFrZOqil6A9pu+4pQ0AAABgeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJmZWF0dXJlIjoiVW5yZXN0cmljdGVkU2hhcmVkQXJyYXlCdWZmZXIiLCJleHBpcnkiOjE2NzUyOTU5OTl9">
+  </head>
+  <body>
+    <script>
+
+      var Module = {
+          onRuntimeInitialized: async function() {
+              const encoderModelBytes = await(await fetch('lyra/model_coeffs/soundstream_encoder.tflite')).arrayBuffer();
+              const quantizerModelBytes = await(await fetch('lyra/model_coeffs/quantizer.tflite')).arrayBuffer();
+              let encoderModel = Module.returnBytes();
+              for (const x of new Uint8Array(encoderModelBytes)) {
+                  encoderModel.push_back(x);
+              }
+              let quantizerModel = Module.returnBytes();
+              for (const x of new Uint8Array(quantizerModelBytes)) {
+                  quantizerModel.push_back(x);
+              }
+
+              console.log("Loaded model files");
+              let encoder = Module.LyraEncoder.CreateFromBuffers(44100, 1, 3200, false, encoderModel, quantizerModel);
+              console.log("Created encoder");
+
+              //encoder.Encode([]);
+          }
+    };
+    </script>
+    <script src="bazel-bin/lyra-wasm/lyra.js"></script>
+
+    hello
+  </body>
+</html>
