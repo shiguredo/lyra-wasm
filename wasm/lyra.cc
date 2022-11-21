@@ -1,18 +1,14 @@
-#include <emscripten/bind.h>
-#include <emscripten/val.h>
 #include <string>
 #include <vector>
+
+#include <emscripten/bind.h>
+#include <emscripten/val.h>
 
 #include "lyra_encoder.h"
 #include "lyra_decoder.h"
 
 using namespace emscripten;
 using namespace chromemedia::codec;
-
-std::vector<uint8_t> returnBytes() {
-  std::vector<uint8_t> v;
-  return v;
-}
 
 std::vector<int16_t> newAudioData(size_t samples) {
   std::vector<int16_t> data(samples); // TODO
@@ -23,7 +19,6 @@ EMSCRIPTEN_BINDINGS(lyra_encoder) {
   register_vector<uint8_t>("Bytes");
   register_vector<int16_t>("AudioData");
 
-  function("returnBytes", &returnBytes);
   function("newAudioData", &newAudioData);
 
   class_<LyraEncoder>("LyraEncoder")

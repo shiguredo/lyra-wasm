@@ -6,33 +6,25 @@
     <script>
 
       var Module = {
+          preRun: function() {
+              FS.createPreloadedFile(
+                  "/", "lyra_config.binarypb",
+                  "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/lyra_config.binarypb",
+                  true, false);
+              FS.createPreloadedFile(
+                  "/", "soundstream_encoder.tflite",
+                  "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/soundstream_encoder.tflite",
+                  true, false);
+              FS.createPreloadedFile(
+                  "/", "quantizer.tflite",
+                  "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/quantizer.tflite",
+                  true, false);
+              FS.createPreloadedFile(
+                  "/", "lyragan.tflite",
+                  "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/lyragan.tflite",
+                  true, false);
+          },
           onRuntimeInitialized: async function() {
-              const configBytes = await(await fetch('lyra/model_coeffs/lyra_config.binarypb')).arrayBuffer();
-              const encoderModelBytes = await(await fetch('lyra/model_coeffs/soundstream_encoder.tflite')).arrayBuffer();
-              const quantizerModelBytes = await(await fetch('lyra/model_coeffs/quantizer.tflite')).arrayBuffer();
-              const lyraganModelBytes = await(await fetch('lyra/model_coeffs/lyragan.tflite')).arrayBuffer();
-              let encoderModel = Module.returnBytes();
-              for (const x of new Uint8Array(encoderModelBytes)) {
-                  encoderModel.push_back(x);
-              }
-              let quantizerModel = Module.returnBytes();
-              for (const x of new Uint8Array(quantizerModelBytes)) {
-                  quantizerModel.push_back(x);
-              }
-
-              console.log("Loaded model files");
-              //let encoder = Module.LyraEncoder.CreateFromBuffers(48000, 1, 3200, false, encoderModel, quantizerModel);
-
-
-              //var fDevice = FS.makedev(64, 0);
-              // FS.registerDevice(fDevice, {});
-              // FS.mkdev('/lyra', 0777, fDevice);
-              // FS.mount(MEMFS, {}, '/lyra')
-              //FS.createDataFile('/data', 'test', 'abcdef', true, true);
-              FS.writeFile("lyra_config.binarypb", new Uint8Array(configBytes));
-              FS.writeFile("/soundstream_encoder.tflite", new Uint8Array(encoderModelBytes));
-              FS.writeFile("/quantizer.tflite", new Uint8Array(quantizerModelBytes));
-              FS.writeFile("/lyragan.tflite", new Uint8Array(lyraganModelBytes));
               let encoder = Module.LyraEncoder.create(48000, 1, 3200, false, "/");
 
               console.log("Created encoder");

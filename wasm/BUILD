@@ -14,6 +14,8 @@ LINKOPTS = [
     "-sALLOW_MEMORY_GROWTH",
     # "-s EXPORT_ES6=1",
 
+    "--use-preload-plugins",
+
     # "-sMODULARIZE",
     # TODO: "-sMODULARIZE",
 ]
