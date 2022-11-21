@@ -33,11 +33,29 @@
               FS.writeFile("/soundstream_encoder.tflite", new Uint8Array(encoderModelBytes));
               FS.writeFile("/quantizer.tflite", new Uint8Array(quantizerModelBytes));
               FS.writeFile("/lyragan.tflite", new Uint8Array(lyraganModelBytes));
-              let encoder = Module.LyraEncoder.CreateWithRoot(48000, 1, 3200, false);
+              let encoder = Module.LyraEncoder.create(48000, 1, 3200, false, "/");
 
               console.log("Created encoder");
 
-              //encoder.Encode([]);
+              const samples = 960;
+              let audioData = Module.newAudioData(samples);
+              let i = 0;
+              while (i < samples) {
+                  audioData.set(i, Math.floor(Math.random() * 64000) - 32000);
+                  i+=1;
+              }
+              const encoded = encoder.encode(audioData);
+              console.log("Encoded");
+              console.log(encoded);
+
+              let decoder = Module.LyraDecoder.create(48000, 1, "/");
+              console.log("Created decoder");
+
+              const valid = decoder.setEncodedPacket(encoded);
+              console.log("setEncodedPacket: " + valid);
+              const decoded = decoder.decodeSamples(960);
+              console.log("decoded");
+              console.log(decoded);
           }
     };
     </script>

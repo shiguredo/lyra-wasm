@@ -10,8 +10,11 @@ LINKOPTS = [
     # TODO
     "-s ERROR_ON_UNDEFINED_SYMBOLS=0",
 
+    # TODO: Consider to use INITIAL_MEMORY_SIZE instead
     "-sALLOW_MEMORY_GROWTH",
+    # "-s EXPORT_ES6=1",
 
+    # "-sMODULARIZE",
     # TODO: "-sMODULARIZE",
 ]
 
