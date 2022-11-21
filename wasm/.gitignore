@@ -1,5 +1,3 @@
-emsdk/
-lyra/
 bazel-bin
 bazel-out
 bazel-testlogs

@@ -1,11 +1,14 @@
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 ########
 # Lyra #
 ########
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-local_repository(name = "lyra", path = "lyra/")
+git_repository(
+    name = "lyra",
+    remote = "https://github.com/google/lyra.git",
+    tag = "v1.3.0",
+)
 
 # proto_library, cc_proto_library, and java_proto_library rules implicitly
 # depend on @com_google_protobuf for protoc and proto runtimes.
@@ -119,13 +122,18 @@ workspace2()
 ##################
 # Emscripten SDK #
 ##################
-# TODO: Refer github repository
-local_repository(name = "emsdk", path = "emsdk/bazel/")
+http_archive(
+    name = "emsdk",
+    sha256 = "a61ac5c1f70b606a6a9a77ba89094531166a9c462ff794ab6c43b7a25f8b9b22",
+    strip_prefix = "emsdk-01d3d782c8c8b5b227f786408af580db4829f9b3/bazel",
+    url = "https://github.com/emscripten-core/emsdk/archive/01d3d782c8c8b5b227f786408af580db4829f9b3.tar.gz",
+)
+
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
 emsdk_deps()
 
 load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
-emsdk_emscripten_deps()
+emsdk_emscripten_deps(emscripten_version = "3.1.26")
 
 load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
 register_emscripten_toolchains()
