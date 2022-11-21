@@ -10,6 +10,8 @@ LINKOPTS = [
     # TODO
     "-s ERROR_ON_UNDEFINED_SYMBOLS=0",
 
+    "-sALLOW_MEMORY_GROWTH",
+
     # TODO: "-sMODULARIZE",
 ]
 
