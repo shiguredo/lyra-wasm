@@ -8,13 +8,17 @@ export interface LyraWasmEncoderClass {
   ): LyraWasmEncoder | undefined;
 }
 
-export interface LyraWasmEncoder {}
+export interface LyraWasmEncoder {
+  delete(): void;
+}
 
 export interface LyraWasmDecoderClass {
   create(sampleRateHz: number, numChannels: number, modelPath: string): LyraWasmDecoder | undefined;
 }
 
-export interface LyraWasmDecoder {}
+export interface LyraWasmDecoder {
+  delete(): void;
+}
 
 export interface LyraWasmModule extends EmscriptenModule {
   LyraEncoder: LyraWasmEncoderClass;

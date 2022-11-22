@@ -4,7 +4,7 @@ import * as lyra_wasm from "./lyra_wasm.js";
 const MEMFS_MODEL_PATH = "/tmp/";
 
 class LyraModule {
-  wasmModule: lyra_wasm.LyraWasmModule;
+  private wasmModule: lyra_wasm.LyraWasmModule;
 
   private constructor(wasmModule: lyra_wasm.LyraWasmModule) {
     this.wasmModule = wasmModule;
@@ -32,16 +32,46 @@ class LyraModule {
     bitrate: number,
     enableDtx: boolean
   ): LyraEncoder | undefined {
-    return this.wasmModule.LyraEncoder.create(sampleRateHz, numChannels, bitrate, enableDtx, MEMFS_MODEL_PATH);
+    const encoder = this.wasmModule.LyraEncoder.create(sampleRateHz, numChannels, bitrate, enableDtx, MEMFS_MODEL_PATH);
+    if (encoder === undefined) {
+      return undefined;
+    } else {
+      return new LyraEncoder(encoder);
+    }
   }
 
   createDecoder(sampleRateHz: number, numChannels: number): LyraDecoder | undefined {
-    return this.wasmModule.LyraDecoder.create(sampleRateHz, numChannels, MEMFS_MODEL_PATH);
+    const decoder = this.wasmModule.LyraDecoder.create(sampleRateHz, numChannels, MEMFS_MODEL_PATH);
+    if (decoder === undefined) {
+      return undefined;
+    } else {
+      return new LyraDecoder(decoder);
+    }
   }
 }
 
-class LyraEncoder {}
+class LyraEncoder {
+  private encoder: lyra_wasm.LyraWasmEncoder;
 
-class LyraDecoder {}
+  constructor(encoder: lyra_wasm.LyraWasmEncoder) {
+    this.encoder = encoder;
+  }
+
+  destroy(): void {
+    this.encoder.delete();
+  }
+}
+
+class LyraDecoder {
+  private decoder: lyra_wasm.LyraWasmDecoder;
+
+  constructor(decoder: lyra_wasm.LyraWasmDecoder) {
+    this.decoder = decoder;
+  }
+
+  destroy(): void {
+    this.decoder.delete();
+  }
+}
 
 export { LyraModule, LyraDecoder, LyraEncoder };
