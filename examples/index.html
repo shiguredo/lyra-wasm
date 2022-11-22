@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <meta http-equiv="origin-trial" content="AgzZrbX4jBphRIVHd0mDLyV2c3zKrVzGq/wTUydsSAQqv2njX1U5BCFPiKHSvZsS0LXfsGFrZOqil6A9pu+4pQ0AAABgeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJmZWF0dXJlIjoiVW5yZXN0cmljdGVkU2hhcmVkQXJyYXlCdWZmZXIiLCJleHBpcnkiOjE2NzUyOTU5OTl9">
+  </head>
+  <body>
+    <script src="../dist/lyra.js"></script>
+    <script>
+      const lyraModule = Shiguredo.LyraModule.load("../wasm/bazel-bin/lyra-wasm/").then((result) => {
+          console.log("loaded");
+          return result;
+      });
+    </script>
+  </body>
+</html>
