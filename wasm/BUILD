@@ -10,14 +10,13 @@ LINKOPTS = [
     # TODO
     "-s ERROR_ON_UNDEFINED_SYMBOLS=0",
 
-    # TODO: Consider to use INITIAL_MEMORY_SIZE instead
     "-sALLOW_MEMORY_GROWTH",
-    # "-s EXPORT_ES6=1",
+    "-s EXPORT_ES6=1",
 
     "--use-preload-plugins",
 
-    # "-sMODULARIZE",
-    # TODO: "-sMODULARIZE",
+    "-s MODULARIZE=1",
+    "-s EXPORT_NAME=LyraWasmModule",
 ]
 
 config_setting(
