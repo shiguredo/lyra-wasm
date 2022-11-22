@@ -5,13 +5,16 @@
   <body>
     <script src="../dist/lyra.js"></script>
     <script>
-      Shiguredo.LyraModule.load("../wasm/bazel-bin/lyra-wasm/").then((lyraModule) => {
+      Shiguredo.LyraModule.load(
+        "../wasm/bazel-bin/lyra-wasm/",
+        "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/"
+      ).then((lyraModule) => {
           console.log("loaded");
 
-          const encoder = lyraModule.createEncoder(4800, 1, 3200, false);
+          const encoder = lyraModule.createEncoder(48000, 1, 3200, false);
           console.log("created encoder");
 
-          const decoder = lyraModule.createDecoder(4800, 1);
+          const decoder = lyraModule.createDecoder(48000, 1);
           console.log("created decoder");
       });
     </script>

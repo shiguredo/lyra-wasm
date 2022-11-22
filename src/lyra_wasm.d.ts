@@ -5,13 +5,13 @@ export interface LyraWasmEncoderClass {
     bitrate: number,
     enableDtx: boolean,
     modelPath: string
-  ): LyraWasmEncoder;
+  ): LyraWasmEncoder | undefined;
 }
 
 export interface LyraWasmEncoder {}
 
 export interface LyraWasmDecoderClass {
-  create(sampleRateHz: number, numChannels: number, modelPath: string): LyraWasmDecoder;
+  create(sampleRateHz: number, numChannels: number, modelPath: string): LyraWasmDecoder | undefined;
 }
 
 export interface LyraWasmDecoder {}
@@ -19,11 +19,12 @@ export interface LyraWasmDecoder {}
 export interface LyraWasmModule extends EmscriptenModule {
   LyraEncoder: LyraWasmEncoderClass;
   LyraDecoder: LyraWasmDecoderClass;
+  FS_createPreloadedFile(parent: string, name: string, url: string, canRead: boolean, canWrite: boolean): void;
 }
 
 export interface LoadLyraWasmModuleOptions {
   locateFile?: (path: string, prefix: string) => string;
-  preRun?: () => void;
+  preRun?: (wasmModule: LyraWasmModule) => void;
 }
 
 export default function loadLyraWasmModule(options?: LoadLyraWasmModuleOptions): Promise<LyraWasmModule>;
