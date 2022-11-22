@@ -45,3 +45,6 @@ src/rnnoise_wasm.js
 
 # Ignore generated docs
 apidoc/
+
+# Generated files
+src/lyra_wasm.js
