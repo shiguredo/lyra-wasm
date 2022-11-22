@@ -8,22 +8,35 @@ class LyraModule {
     this.wasmModule = wasmModule;
   }
 
-  static async load(wasmPath: string /* TODO: , modelPath: string*/): Promise<LyraModule> {
+  static async load(wasmPath: string, modelPath: string): Promise<LyraModule> {
     const wasmModule = await loadLyraWasmModule({
       locateFile: (path, prefix) => {
         return wasmPath + path;
+      },
+      preRun: () => {
+        const fileNames = ["lyra_config.binarypb", "soundstream_encoder.tflite", "quantizer.tflite", "lyragan.tflite"];
+        for (const fileName of fileNames) {
+          // @ts-ignore
+          LyraWasmModule.FS.createPreloadedFile(
+            "/", // TODO: use a temp dir to avoid conflict(?)
+            fileName,
+            modelPath + fileName,
+            true,
+            false
+          );
+        }
       },
     });
 
     return new LyraModule(wasmModule);
   }
 
-  createEncoder(): LyraEncoder {
-    return new LyraEncoder();
+  createEncoder(sampleRateHz: number, numChannels: number, bitrate: number, enableDtx: boolean): LyraEncoder {
+    return this.wasmModule.LyraEncoder.create(sampleRateHz, numChannels, bitrate, enableDtx, "/");
   }
 
-  createDecoder(): LyraDecoder {
-    return new LyraDecoder();
+  createDecoder(sampleRateHz: number, numChannels: number): LyraDecoder {
+    return this.wasmModule.LyraDecoder.create(sampleRateHz, numChannels, "/");
   }
 }
 

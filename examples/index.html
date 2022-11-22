@@ -5,9 +5,14 @@
   <body>
     <script src="../dist/lyra.js"></script>
     <script>
-      const lyraModule = Shiguredo.LyraModule.load("../wasm/bazel-bin/lyra-wasm/").then((result) => {
+      Shiguredo.LyraModule.load("../wasm/bazel-bin/lyra-wasm/").then((lyraModule) => {
           console.log("loaded");
-          return result;
+
+          const encoder = lyraModule.createEncoder(4800, 1, 3200, false);
+          console.log("created encoder");
+
+          const decoder = lyraModule.createDecoder(4800, 1);
+          console.log("created decoder");
       });
     </script>
   </body>
