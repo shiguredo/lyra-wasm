@@ -29,7 +29,7 @@ EMSCRIPTEN_BINDINGS(lyra_encoder) {
                       return LyraEncoder::Create(sample_rate_hz, num_channels, bitrate, enable_dtx, model_path);
                     }))
     .function("encode",
-              optional_override([](LyraEncoder& self, std::vector<int16_t> audio_data) {
+              optional_override([](LyraEncoder& self, std::vector<int16_t>& audio_data) {
                 auto result = self.LyraEncoder::Encode(absl::MakeSpan(audio_data));
                 if (result) {
                   return val(*result);
@@ -45,7 +45,7 @@ EMSCRIPTEN_BINDINGS(lyra_encoder) {
                       return LyraDecoder::Create(sample_rate_hz, num_channels, model_path);
                     }))
     .function("setEncodedPacket",
-              optional_override([](LyraDecoder& self, std::vector<uint8_t> encoded) {
+              optional_override([](LyraDecoder& self, std::vector<uint8_t>& encoded) {
                 return self.LyraDecoder::SetEncodedPacket(absl::MakeSpan(encoded));
               }))
     .function("decodeSamples",
