@@ -1,22 +1,122 @@
 <html>
   <head>
+    <meta charset="utf-8">
     <meta http-equiv="origin-trial" content="AgzZrbX4jBphRIVHd0mDLyV2c3zKrVzGq/wTUydsSAQqv2njX1U5BCFPiKHSvZsS0LXfsGFrZOqil6A9pu+4pQ0AAABgeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJmZWF0dXJlIjoiVW5yZXN0cmljdGVkU2hhcmVkQXJyYXlCdWZmZXIiLCJleHBpcnkiOjE2NzUyOTU5OTl9">
   </head>
   <body>
+    <h2>操作</h2>
+    <input value="録音開始（5秒）" type="button" onClick="startRecording()">
+    <input value="再生開始（Lyra エンコード・デコード後の音声）" type="button" onClick="playProcessedAudio()">
+    <input value="再生開始（オリジナルマイク入力）" type="button" onClick="playOriginalAudio()">
+    <br />
+
+    <audio id="audio" autoplay playsinline></audio>
     <script src="../dist/lyra.js"></script>
     <script>
-      Shiguredo.LyraModule.load(
-        "../wasm/bazel-bin/lyra-wasm/",
-        "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/"
-      ).then((lyraModule) => {
-          console.log("loaded");
+      let originalAudioDataList = [];
+      let audioContext;
+      let lyraModule;
+      const recordingDuration = 5 * 1000 * 1000; // micro secs
 
-          const encoder = lyraModule.createEncoder(48000, 1, 3200, false);
-          console.log("created encoder");
+      function getUserMedia() {
+        const constraints = {audio: {
+          sampleRate: {exact: 48000},
+          channelCount: {exact: 1}
+        }};
+        return navigator.mediaDevices.getUserMedia(constraints);
+      }
 
-          const decoder = lyraModule.createDecoder(48000, 1);
-          console.log("created decoder");
-      });
+      function startRecording() {
+        originalAudioDataList = [];
+
+        getUserMedia().then(async (inputStream) => {
+          // モデルをロード
+          if (lyraModule === undefined) {
+             lyraModule = await Shiguredo.LyraModule.load(
+               "../wasm/bazel-bin/lyra-wasm/",
+               "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/"
+             );
+          }
+
+          audioContext = new AudioContext({sampleRate: 48000});
+
+          // 入力音声を録音
+          const abortController = new AbortController();
+          const signal = abortController.signal;
+          let duration = 0;
+          const inputAudioGenerator = new MediaStreamTrackGenerator({ kind: "audio" });
+          const inputAudioProcessor = new MediaStreamTrackProcessor({ track: inputStream.getAudioTracks()[0] });
+          inputAudioProcessor.readable
+            .pipeThrough(
+              new TransformStream({
+                transform: (data, controller) => {
+                  originalAudioDataList.push(data);
+                  duration += data.duration;
+                  if (duration > recordingDuration) {
+                    abortController.abort();
+                    alert("録音完了");
+                  }
+                }
+              }),
+              { signal })
+            .pipeTo(inputAudioGenerator.writable)
+            .catch((e) => {
+              if (!signal.aborted) {
+                console.log("Input stream transform stopped:", e);
+              }
+            });
+        });
+      }
+
+      function playProcessedAudio() {
+        let processedAudioDataList = [];
+        let encoder = lyraModule.createEncoder(); // TODO: bitrate
+        let decoder = lyraModule.createDecoder();
+        for (let i = 0; i < originalAudioDataList.length; i += 2) {
+          if (originalAudioDataList.length == i+1) {
+            break;
+          }
+          const audioData = new Float32Array(encoder.frameSize);
+          originalAudioDataList[i].copyTo(audioData.subarray(0, encoder.frameSize/2), { planeIndex: 0 });
+          originalAudioDataList[i+1].copyTo(audioData.subarray(encoder.frameSize/2), { planeIndex: 0 });
+
+          const encoded = encoder.encode(audioData);
+          const processedData = decoder.decode(encoded);
+          processedAudioDataList.push(
+            new AudioData({
+              format: originalAudioDataList[i].format,
+              sampleRate: 48000,
+              numberOfFrames: encoder.frameSize,
+              numberOfChannels: 1,
+              timestamp: originalAudioDataList[i].timestamp,
+              data: processedData,
+            })
+          );
+        }
+        playAudio(processedAudioDataList);
+      }
+
+      function playOriginalAudio() {
+        playAudio(originalAudioDataList);
+      }
+
+      function playAudio(audioDataList) {
+        const frames = audioDataList[0].numberOfFrames;
+        const buffer = audioContext.createBuffer(
+          1,
+          frames * audioDataList.length,
+          audioDataList[0].sampleRate
+        );
+        const tmpBuffer = new Float32Array(frames);
+        for (const [i, audioData] of audioDataList.entries()) {
+          audioData.copyTo(tmpBuffer, { planeIndex: 0 });
+          buffer.copyToChannel(tmpBuffer, 0, i * frames);
+        }
+        var source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
+      }
     </script>
   </body>
 </html>

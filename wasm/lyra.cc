@@ -15,11 +15,16 @@ std::vector<int16_t> newAudioData(size_t samples) {
   return data;
 }
 
+std::vector<uint8_t> newBytes() {
+  return std::vector<uint8_t>();
+}
+
 EMSCRIPTEN_BINDINGS(lyra_encoder) {
   register_vector<uint8_t>("Bytes");
   register_vector<int16_t>("AudioData");
 
   function("newAudioData", &newAudioData);
+  function("newBytes", &newBytes);
 
   class_<LyraEncoder>("LyraEncoder")
     .class_function("create",

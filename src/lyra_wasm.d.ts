@@ -39,7 +39,7 @@ export interface LoadLyraWasmModuleOptions {
 export interface AudioData {
   set(index: number, value: number): void;
   get(index: number): number;
-  length: number;
+  size(): number;
   delete(): void;
 }
 
@@ -47,8 +47,9 @@ export interface Bytes {
   set(index: number, value: number): void;
   push_back(value: number): void;
   clear(): void;
+  resize(a: number, b: number): void; // TODO
   get(index: number): number;
-  length: number;
+  size(): number;
   delete(): void;
 }
 

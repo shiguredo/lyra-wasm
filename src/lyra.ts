@@ -96,7 +96,7 @@ class LyraEncoder {
     this.bitrate = options.bitrate || DEFAULT_BITRATE;
     this.enableDtx = options.enableDtx || false;
 
-    this.frameSize = buffer.length;
+    this.frameSize = buffer.size();
   }
 
   encode(audioData: Float32Array): Uint8Array | undefined {
@@ -110,8 +110,8 @@ class LyraEncoder {
     if (result === undefined) {
       return undefined;
     } else {
-      const encodedAudioData = new Uint8Array(result.length);
-      for (let i = 0; i < result.length; i++) {
+      const encodedAudioData = new Uint8Array(result.size());
+      for (let i = 0; i < encodedAudioData.length; i++) {
         encodedAudioData[i] = result.get(i);
       }
       return encodedAudioData;
@@ -147,7 +147,8 @@ class LyraDecoder {
 
   decode(encodedAudioData: Uint8Array | undefined): Float32Array {
     if (encodedAudioData !== undefined) {
-      this.buffer.clear();
+      // TODO: this.buffer.clear();
+      this.buffer.resize(0, 0);
       for (const v of encodedAudioData) {
         this.buffer.push_back(v);
       }
@@ -162,11 +163,11 @@ class LyraDecoder {
     }
 
     const audioData = new Float32Array(this.frameSize);
-    result.delete();
 
     for (let i = 0; i < this.frameSize; i++) {
       audioData[i] = convertInt16ToFloat32(result.get(i));
     }
+    result.delete();
 
     return audioData;
   }
