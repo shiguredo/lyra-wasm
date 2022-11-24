@@ -9,6 +9,7 @@ export interface LyraWasmEncoderClass {
 }
 
 export interface LyraWasmEncoder {
+  encode(audioData: AudioData): Bytes | undefined;
   delete(): void;
 }
 
@@ -23,12 +24,23 @@ export interface LyraWasmDecoder {
 export interface LyraWasmModule extends EmscriptenModule {
   LyraEncoder: LyraWasmEncoderClass;
   LyraDecoder: LyraWasmDecoderClass;
+  newAudioData(numberOfSamples: number): AudioData;
   FS_createPreloadedFile(parent: string, name: string, url: string, canRead: boolean, canWrite: boolean): void;
 }
 
 export interface LoadLyraWasmModuleOptions {
   locateFile?: (path: string, prefix: string) => string;
   preRun?: (wasmModule: LyraWasmModule) => void;
+}
+
+export interface AudioData {
+  set(index: number, value: number): void;
+  length: number;
+}
+
+export interface Bytes {
+  get(index: number): number;
+  length: number;
 }
 
 export default function loadLyraWasmModule(options?: LoadLyraWasmModuleOptions): Promise<LyraWasmModule>;
