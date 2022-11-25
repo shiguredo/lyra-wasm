@@ -17,6 +17,10 @@ interface LyraDecoderOptions {
 
 const DEFAULT_SAMPLE_RATE = 48000;
 const DEFAULT_BITRATE = 9200;
+const DEFAULT_ENABLE_DTX = false;
+const DEFAULT_CHANNELS = 1;
+
+const FRAME_DURATION_MS = 20;
 
 class LyraModule {
   private wasmModule: lyra_wasm.LyraWasmModule;
@@ -28,12 +32,13 @@ class LyraModule {
   static async load(wasmPath: string, modelPath: string): Promise<LyraModule> {
     const wasmModule = await loadLyraWasmModule({
       locateFile: (path) => {
-        return wasmPath + path;
+        return trimLastSlash(wasmPath) + "/" + path;
       },
       preRun: (wasmModule) => {
         const fileNames = ["lyra_config.binarypb", "soundstream_encoder.tflite", "quantizer.tflite", "lyragan.tflite"];
         for (const fileName of fileNames) {
-          wasmModule.FS_createPreloadedFile(MEMFS_MODEL_PATH, fileName, modelPath + fileName, true, false);
+          const url = trimLastSlash(modelPath) + "/" + fileName;
+          wasmModule.FS_createPreloadedFile(MEMFS_MODEL_PATH, fileName, url, true, false);
         }
       },
     });
@@ -41,34 +46,38 @@ class LyraModule {
     return new LyraModule(wasmModule);
   }
 
-  createEncoder(options: LyraEncoderOptions = {}): LyraEncoder | undefined {
-    // TODO: validate
+  createEncoder(options: LyraEncoderOptions = {}): LyraEncoder {
+    checkSampleRate(options.sampleRate);
+    checkNumberOfChannels(options.numberOfChannels);
+    checkBitrate(options.bitrate);
+
     const encoder = this.wasmModule.LyraEncoder.create(
       options.sampleRate || DEFAULT_SAMPLE_RATE,
-      options.numberOfChannels || 1,
+      options.numberOfChannels || DEFAULT_CHANNELS,
       options.bitrate || DEFAULT_BITRATE,
-      options.enableDtx || false,
+      options.enableDtx || DEFAULT_ENABLE_DTX,
       MEMFS_MODEL_PATH
     );
     if (encoder === undefined) {
-      // TODO: throw an exception
-      return undefined;
+      throw new Error("failed to create lyra encoder");
     } else {
-      const frameSize = (options.sampleRate || DEFAULT_SAMPLE_RATE) / 50; // 20 ms
+      const frameSize = ((options.sampleRate || DEFAULT_SAMPLE_RATE) * FRAME_DURATION_MS) / 1000;
       const buffer = this.wasmModule.newAudioData(frameSize);
       return new LyraEncoder(encoder, buffer, options);
     }
   }
 
-  createDecoder(options: LyraDecoderOptions = {}): LyraDecoder | undefined {
-    // TODO: validate
+  createDecoder(options: LyraDecoderOptions = {}): LyraDecoder {
+    checkSampleRate(options.sampleRate);
+    checkNumberOfChannels(options.numberOfChannels);
+
     const decoder = this.wasmModule.LyraDecoder.create(
       options.sampleRate || DEFAULT_SAMPLE_RATE,
-      options.numberOfChannels || 1,
+      options.numberOfChannels || DEFAULT_CHANNELS,
       MEMFS_MODEL_PATH
     );
     if (decoder === undefined) {
-      return undefined; // TODO: exception
+      throw new Error("failed to create lyra decoder");
     } else {
       const buffer = this.wasmModule.newBytes();
       return new LyraDecoder(decoder, buffer, options);
@@ -92,15 +101,19 @@ class LyraEncoder {
     this.buffer = buffer;
 
     this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
-    this.numberOfChannels = options.numberOfChannels || 1;
+    this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
     this.bitrate = options.bitrate || DEFAULT_BITRATE;
-    this.enableDtx = options.enableDtx || false;
+    this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
 
     this.frameSize = buffer.size();
   }
 
   encode(audioData: Float32Array): Uint8Array | undefined {
-    // validate audioData.length
+    if (audioData.length !== this.frameSize) {
+      throw new Error(
+        `expected an audio data with ${this.frameSize} samples, but got one with ${audioData.length} samples`
+      );
+    }
 
     for (const [i, v] of audioData.entries()) {
       this.buffer.set(i, convertFloat32ToInt16(v));
@@ -110,15 +123,25 @@ class LyraEncoder {
     if (result === undefined) {
       return undefined;
     } else {
-      const encodedAudioData = new Uint8Array(result.size());
-      for (let i = 0; i < encodedAudioData.length; i++) {
-        encodedAudioData[i] = result.get(i);
+      try {
+        const encodedAudioData = new Uint8Array(result.size());
+        for (let i = 0; i < encodedAudioData.length; i++) {
+          encodedAudioData[i] = result.get(i);
+        }
+        return encodedAudioData;
+      } finally {
+        result.delete();
       }
-      return encodedAudioData;
     }
   }
 
-  // TODO: setBitrate
+  setBitrate(bitrate: number): void {
+    checkBitrate(bitrate);
+
+    if (!this.encoder.setBitrate(bitrate)) {
+      throw new Error(`failed to update bitrate from ${this.bitrate} to ${bitrate}`);
+    }
+  }
 
   destroy(): void {
     this.encoder.delete();
@@ -140,9 +163,9 @@ class LyraDecoder {
     this.buffer = buffer;
 
     this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
-    this.numberOfChannels = options.numberOfChannels || 1;
+    this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
 
-    this.frameSize = this.sampleRate / 50; // 20 ms
+    this.frameSize = (this.sampleRate * FRAME_DURATION_MS) / 1000;
   }
 
   decode(encodedAudioData: Uint8Array | undefined): Float32Array {
@@ -152,23 +175,23 @@ class LyraDecoder {
         this.buffer.push_back(v);
       }
       if (!this.decoder.setEncodedPacket(this.buffer)) {
-        throw Error("TODO");
+        throw new Error("failed to set encoded packet");
       }
     }
 
     const result = this.decoder.decodeSamples(this.frameSize);
     if (result === undefined) {
-      throw Error("TODO");
+      throw Error("failed to decode samples");
     }
-
-    const audioData = new Float32Array(this.frameSize);
-
-    for (let i = 0; i < this.frameSize; i++) {
-      audioData[i] = convertInt16ToFloat32(result.get(i));
+    try {
+      const audioData = new Float32Array(this.frameSize);
+      for (let i = 0; i < this.frameSize; i++) {
+        audioData[i] = convertInt16ToFloat32(result.get(i));
+      }
+      return audioData;
+    } finally {
+      result.delete();
     }
-    result.delete();
-
-    return audioData;
   }
 
   destroy(): void {
@@ -183,6 +206,45 @@ function convertFloat32ToInt16(v: number): number {
 
 function convertInt16ToFloat32(v: number): number {
   return v / 0x7fff;
+}
+
+function trimLastSlash(s: string): string {
+  if (s.slice(-1) === "/") {
+    return s.slice(0, -1);
+  }
+  return s;
+}
+
+function checkSampleRate(n: number | undefined): void {
+  switch (n) {
+    case undefined:
+    case 8000:
+    case 16000:
+    case 32000:
+    case 48000:
+      return;
+  }
+  throw new Error(`unsupported sample rate: expected one of 8000, 16000, 32000 or 48000, but got ${n}`);
+}
+
+function checkNumberOfChannels(n: number | undefined): void {
+  switch (n) {
+    case undefined:
+    case 1:
+      return;
+  }
+  throw new Error(`unsupported number of channels: expected 1, but got ${n}`);
+}
+
+function checkBitrate(n: number | undefined): void {
+  switch (n) {
+    case undefined:
+    case 3200:
+    case 6000:
+    case 9200:
+      return;
+  }
+  throw new Error(`unsupported bitrate: expected one of 3200, 6000 or 9200, but got ${n}`);
 }
 
 export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions };
