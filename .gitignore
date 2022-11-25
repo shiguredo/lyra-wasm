@@ -46,5 +46,11 @@ src/rnnoise_wasm.js
 # Ignore generated docs
 apidoc/
 
+# Bazel
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-wasm
+
 # Generated files
 src/lyra_wasm.js
