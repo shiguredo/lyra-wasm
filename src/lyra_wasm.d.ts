@@ -32,7 +32,7 @@ export interface LyraWasmModule extends EmscriptenModule {
 }
 
 export interface LoadLyraWasmModuleOptions {
-  locateFile?: (path: string, prefix: string) => string;
+  locateFile?: (path: string) => string;
   preRun?: (wasmModule: LyraWasmModule) => void;
 }
 

@@ -27,7 +27,7 @@ class LyraModule {
 
   static async load(wasmPath: string, modelPath: string): Promise<LyraModule> {
     const wasmModule = await loadLyraWasmModule({
-      locateFile: (path, prefix) => {
+      locateFile: (path) => {
         return wasmPath + path;
       },
       preRun: (wasmModule) => {
