@@ -8,7 +8,7 @@ fi
 set -eux
 
 cd wasm/
-pip installl --user numpy
+pip install --user numpy
 bazel build -c opt --features=-wasm_warnings_as_errors :lyra-wasm
 cd ../
 
