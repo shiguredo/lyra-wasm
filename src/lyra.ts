@@ -147,8 +147,7 @@ class LyraDecoder {
 
   decode(encodedAudioData: Uint8Array | undefined): Float32Array {
     if (encodedAudioData !== undefined) {
-      // TODO: this.buffer.clear();
-      this.buffer.resize(0, 0);
+      this.buffer.clear();
       for (const v of encodedAudioData) {
         this.buffer.push_back(v);
       }

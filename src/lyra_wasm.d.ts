@@ -1,7 +1,7 @@
 export interface LyraWasmEncoderClass {
   create(
-    sampleRateHz: number,
-    numChannels: number,
+    sampleRate: number,
+    numberOfChannels: number,
     bitrate: number,
     enableDtx: boolean,
     modelPath: string
@@ -14,12 +14,12 @@ export interface LyraWasmEncoder {
 }
 
 export interface LyraWasmDecoderClass {
-  create(sampleRateHz: number, numChannels: number, modelPath: string): LyraWasmDecoder | undefined;
+  create(sampleRate: number, numberOfChannels: number, modelPath: string): LyraWasmDecoder | undefined;
 }
 
 export interface LyraWasmDecoder {
   setEncodedPacket(encodedAudioData: Bytes): boolean;
-  decodeSamples(numSamples: number): AudioData | undefined;
+  decodeSamples(numberOfSamples: number): AudioData | undefined;
   delete(): void;
 }
 
@@ -44,10 +44,8 @@ export interface AudioData {
 }
 
 export interface Bytes {
-  set(index: number, value: number): void;
-  push_back(value: number): void;
   clear(): void;
-  resize(a: number, b: number): void; // TODO
+  push_back(value: number): void;
   get(index: number): number;
   size(): number;
   delete(): void;
