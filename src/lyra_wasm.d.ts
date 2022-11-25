@@ -10,6 +10,7 @@ export interface LyraWasmEncoderClass {
 
 export interface LyraWasmEncoder {
   encode(audioData: AudioData): Bytes | undefined;
+  setBitrate(bitrate: number): boolean;
   delete(): void;
 }
 

@@ -28,7 +28,8 @@ EMSCRIPTEN_BINDINGS(lyra) {
               optional_override([](LyraEncoder& self, std::vector<int16_t>& audio_data) {
                 auto result = self.LyraEncoder::Encode(absl::MakeSpan(audio_data));
                 return result ? val(*result) : val::undefined();
-              }));
+              }))
+    .function("setBitrate", &LyraEncoder::set_bitrate);
 
   class_<LyraDecoder>("LyraDecoder")
     .class_function("create",
