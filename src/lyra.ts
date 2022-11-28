@@ -230,6 +230,11 @@ class LyraEncoder {
         for (let i = 0; i < encodedAudioData.length; i++) {
           encodedAudioData[i] = result.get(i);
         }
+        if (encodedAudioData.length === 0) {
+          /// google/lyra のドキュメント上は DTX が有効かつ入力が無音な場合には `result === undefined` になるべきだが、
+          /// 現在の実装上では空バイナリが返ってくるので、ここでハンドリングしている
+          return undefined;
+        }
         return encodedAudioData;
       } finally {
         result.delete();
