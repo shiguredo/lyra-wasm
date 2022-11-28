@@ -3,7 +3,16 @@ import * as lyra_wasm from "./lyra_wasm.js";
 
 const MEMFS_MODEL_PATH = "/tmp/";
 
+/**
+ * {@link LyraModule.createEncoder} メソッドに指定可能なオプション
+ */
 interface LyraEncoderOptions {
+  /**
+   * サンプルレート
+   *
+   * 指定可能な値: 8000,  16000,  32000, 48000
+   * デフォルト値: 48000
+   */
   sampleRate?: number;
   numberOfChannels?: number;
   bitrate?: number;

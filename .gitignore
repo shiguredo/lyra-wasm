@@ -54,3 +54,7 @@ bazel-wasm
 
 # Generated files
 src/lyra_wasm.js
+
+# Model files for examples
+*.binarypb
+*.tflite

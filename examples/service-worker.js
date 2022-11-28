@@ -4,13 +4,20 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if(!e.request.url.startsWith('http') || !e.request.url.startsWith('html')){
+  const isTarget =
+        e.request.url.startsWith('http') &&
+        e.request.url.endsWith('recording');
+  if(!isTarget) {
     e.respondWith(fetch(e.request));
     return;
   }
 
   e.respondWith(
     fetch(e.request).then((response) => {
+      if (response.status === 0) {
+        return response;
+      }
+
       // SharedArrayBuffer 用に COEP と COOP を設定する
       const headers = new Headers(response.headers);
       headers.set("Cross-Origin-Embedder-Policy", "require-corp");

@@ -24,16 +24,16 @@ jobs:
         run: |
           mkdir _site/
           cp dist/lyra.js _site/
-          cp examples/index.html _site/example.html
+          cp examples/recording.html _site/
           cp examples/service-worker.js _site/
           cp wasm/bazel-bin/lyra-wasm/lyra.wasm _site/
           cp wasm/bazel-bin/lyra-wasm/lyra.worker.js _site/
 
           cd _site/
-          curl -OL https://github.com/google/lyra/blob/main/model_coeffs/lyra_config.binarypb
-          curl -OL https://github.com/google/lyra/blob/main/model_coeffs/lyragan.tflite
-          curl -OL https://github.com/google/lyra/blob/main/model_coeffs/quantizer.tflite
-          curl -OL https://github.com/google/lyra/blob/main/model_coeffs/soundstream_encoder.tflite
+          curl -OL https://github.com/google/lyra/raw/v1.3.0/model_coeffs/lyra_config.binarypb
+          curl -OL https://github.com/google/lyra/raw/v1.3.0/model_coeffs/lyragan.tflite
+          curl -OL https://github.com/google/lyra/raw/v1.3.0/model_coeffs/quantizer.tflite
+          curl -OL https://github.com/google/lyra/raw/v1.3.0/model_coeffs/soundstream_encoder.tflite
       - name: Upload files
         uses: actions/upload-pages-artifact@v1
       - name: Slack Notification
