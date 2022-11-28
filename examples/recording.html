@@ -117,6 +117,8 @@
         const halfFrameSize = encoder.frameSize / 2;
         const audioData = new Float32Array(encoder.frameSize);
 
+        let totalEncodedSize = 0;
+        let startTime = performance.now();
         for (let i = 0; i < originalAudioDataList.length; i += 2) {
           if (originalAudioDataList.length == i + 1) {
             break;
@@ -125,6 +127,9 @@
           originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
 
           const encoded = encoder.encode(audioData);
+          if (encoded !== undefined) {
+            totalEncodedSize += encoded.length;
+          }
           const processedData = decoder.decode(encoded);
           processedAudioDataList.push(
             new AudioData({
@@ -137,6 +142,8 @@
             })
           );
         }
+        console.log(`Encoded Size: ${totalEncodedSize} bytes`);
+        console.log(`Elapsed Time: ${performance.now() - startTime} ms`);
         encoder.destroy();
         decoder.destroy();
 
