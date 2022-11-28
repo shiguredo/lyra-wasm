@@ -34,7 +34,7 @@ jobs:
           curl -OL https://github.com/google/lyra/blob/main/model_coeffs/lyragan.tflite
           curl -OL https://github.com/google/lyra/blob/main/model_coeffs/quantizer.tflite
           curl -OL https://github.com/google/lyra/blob/main/model_coeffs/soundstream_encoder.tflite
-      - name: Upload .wasm file
+      - name: Upload files
         uses: actions/upload-pages-artifact@v1
       - name: Slack Notification
         if: failure()
