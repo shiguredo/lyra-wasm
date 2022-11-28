@@ -8,19 +8,53 @@ const MEMFS_MODEL_PATH = "/tmp/";
  */
 interface LyraEncoderOptions {
   /**
-   * サンプルレート
+   * 入力音声データのサンプルレート
    *
    * 指定可能な値: 8000,  16000,  32000, 48000
    * デフォルト値: 48000
    */
   sampleRate?: number;
+
+  /**
+   * 入力音声データのチャンネル数
+   *
+   * 現在は 1 (モノラル、デフォルト値）のみが指定可能
+   */
   numberOfChannels?: number;
+
+  /**
+   * エンコード後の音声データのビットレート
+   *
+   * 指定可能な値: 3200, 6000, 9200
+   * デフォルト値: 9200
+   */
   bitrate?: number;
+
+  /**
+   * DTX（discontinuous transmission）を有効にするかどうか
+   *
+   * デフォルト値: false
+   */
   enableDtx?: boolean;
 }
 
+/**
+ * {@link LyraModule.createDecoder} メソッドに指定可能なオプション
+ */
 interface LyraDecoderOptions {
+  /**
+   * 入力音声データのサンプルレート
+   *
+   * 指定可能な値: 8000,  16000,  32000, 48000
+   * デフォルト値: 48000
+   */
   sampleRate?: number;
+
+  /**
+   * 入力音声データのチャンネル数
+   *
+   * 現在は 1 (モノラル、デフォルト値）のみが指定可能
+   */
   numberOfChannels?: number;
 }
 
@@ -31,6 +65,9 @@ const DEFAULT_CHANNELS = 1;
 
 const FRAME_DURATION_MS = 20;
 
+/**
+ * Lyra 用の WebAssembly ファイルやモデルファイルを管理するためのクラス
+ */
 class LyraModule {
   private wasmModule: lyra_wasm.LyraWasmModule;
 
@@ -38,6 +75,13 @@ class LyraModule {
     this.wasmModule = wasmModule;
   }
 
+  /**
+   * Lyra の WebAssembly ファイルやモデルファイルをロードして {@link LyraModule} のインスタンスを生成する
+   *
+   * @param wasmPath lyra.wasm および lyra.worker.js が配置されているディレクトリのパスないし URL
+   * @param modelPath Lyra 用の *.binarypb および *.tflite が配置されているディレクトリのパスないし URL
+   * @returns 生成された {@link LyraModule} インスタンス
+   */
   static async load(wasmPath: string, modelPath: string): Promise<LyraModule> {
     const wasmModule = await loadLyraWasmModule({
       locateFile: (path) => {
@@ -105,6 +149,9 @@ class LyraEncoder {
 
   readonly frameSize: number;
 
+  /**
+   * @internal
+   */
   constructor(encoder: lyra_wasm.LyraWasmEncoder, buffer: lyra_wasm.AudioData, options: LyraEncoderOptions) {
     this.encoder = encoder;
     this.buffer = buffer;
@@ -167,6 +214,9 @@ class LyraDecoder {
 
   readonly frameSize: number;
 
+  /**
+   * @internal
+   */
   constructor(decoder: lyra_wasm.LyraWasmDecoder, buffer: lyra_wasm.Bytes, options: LyraDecoderOptions) {
     this.decoder = decoder;
     this.buffer = buffer;
