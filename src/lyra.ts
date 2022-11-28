@@ -170,7 +170,7 @@ class LyraDecoder {
 
   decode(encodedAudioData: Uint8Array | undefined): Float32Array {
     if (encodedAudioData !== undefined) {
-      this.buffer.clear();
+      this.buffer.resize(0, 0); // clear() を使うと「関数が存在しない」というエラーが出るので resize() で代用
       for (const v of encodedAudioData) {
         this.buffer.push_back(v);
       }

@@ -45,7 +45,7 @@ export interface AudioData {
 }
 
 export interface Bytes {
-  clear(): void;
+  resize(size: number, default_value: number): void;
   push_back(value: number): void;
   get(index: number): number;
   size(): number;
