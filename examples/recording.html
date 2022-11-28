@@ -14,9 +14,14 @@
     <script>
       if('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./service-worker.js').then((registration) => {
-          if (registration.installing) {
-            location.reload();
-          }
+          registration.addEventListener('updatefound', () => {
+            const newServiceWorker = registration.installing;
+            newServiceWorker.addEventListener('statechange', () => {
+              if (newServiceWorker.state == 'activated') {
+                location.reload();
+              }
+            });
+          });
         });
       }
 
