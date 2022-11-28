@@ -99,6 +99,14 @@ class LyraModule {
     return new LyraModule(wasmModule);
   }
 
+  /**
+   * {@link LyraEncoder} のインスタンスを生成する
+   *
+   * 生成したインスタンスが不要になったら {@link LyraEncoder.destroy} メソッドを呼び出してリソースを解放すること
+   *
+   * @params options エンコーダに指定するオプション
+   * @returns 生成された {@link LyraEncoder} インスタンス
+   */
   createEncoder(options: LyraEncoderOptions = {}): LyraEncoder {
     checkSampleRate(options.sampleRate);
     checkNumberOfChannels(options.numberOfChannels);
@@ -120,6 +128,14 @@ class LyraModule {
     }
   }
 
+  /**
+   * {@link LyraDecoder} のインスタンスを生成する
+   *
+   * 生成したインスタンスが不要になったら {@link LyraDecoder.destroy} メソッドを呼び出してリソースを解放すること
+   *
+   * @params options デコーダに指定するオプション
+   * @returns 生成された {@link LyraDecoder} インスタンス
+   */
   createDecoder(options: LyraDecoderOptions = {}): LyraDecoder {
     checkSampleRate(options.sampleRate);
     checkNumberOfChannels(options.numberOfChannels);
@@ -138,15 +154,36 @@ class LyraModule {
   }
 }
 
+/**
+ * Lyra のエンコーダ
+ */
 class LyraEncoder {
   private encoder: lyra_wasm.LyraWasmEncoder;
   private buffer: lyra_wasm.AudioData;
 
+  /**
+   * 現在のサンププリングレート
+   */
   readonly sampleRate: number;
+
+  /**
+   * 現在のチャネル数
+   */
   readonly numberOfChannels: number;
+
+  /**
+   * 現在のエンコードビットレート
+   */
   readonly bitrate: number;
+
+  /**
+   * DTX が有効になっているかどうか
+   */
   readonly enableDtx: boolean;
 
+  /**
+   * 一つのフレーム（{@link LyraEncoder.encode} メソッドに渡す音声データ）に含めるサンプル数
+   */
   readonly frameSize: number;
 
   /**
@@ -164,6 +201,15 @@ class LyraEncoder {
     this.frameSize = buffer.size();
   }
 
+  /**
+   * 20ms 分の音声データをエンコードする
+   *
+   * @params audioData エンコード対象の音声データ
+   * @returns エンコード後のバイト列。もし DTX が有効で音声データが無音な場合には undefined が代わりに返される。
+   *
+   * @throws
+   * 入力音声データが 20ms 単位（サンプル数としては {@link LyraEncoder.frameSize}）ではない場合には例外が送出される
+   */
   encode(audioData: Float32Array): Uint8Array | undefined {
     if (audioData.length !== this.frameSize) {
       throw new Error(
@@ -191,6 +237,11 @@ class LyraEncoder {
     }
   }
 
+  /**
+   * エンコードビットレートを変更する
+   *
+   * @params bitrate 変更後のビットレート
+   */
   setBitrate(bitrate: number): void {
     checkBitrate(bitrate);
 
@@ -199,19 +250,35 @@ class LyraEncoder {
     }
   }
 
+  /**
+   * エンコーダ用に確保したリソースを解放する
+   */
   destroy(): void {
     this.encoder.delete();
     this.buffer.delete();
   }
 }
 
+/**
+ * Lyra のデコーダ
+ */
 class LyraDecoder {
   private decoder: lyra_wasm.LyraWasmDecoder;
   private buffer: lyra_wasm.Bytes;
 
+  /**
+   * 現在のサンププリングレート
+   */
   readonly sampleRate: number;
+
+  /**
+   * 現在のチャネル数
+   */
   readonly numberOfChannels: number;
 
+  /**
+   * 一つのフレーム（{@link LyraEncoder.decode} メソッドの返り値の音声データ）に含まれるサンプル数
+   */
   readonly frameSize: number;
 
   /**
@@ -227,6 +294,12 @@ class LyraDecoder {
     this.frameSize = (this.sampleRate * FRAME_DURATION_MS) / 1000;
   }
 
+  /**
+   * {@link LyraEncoder.encode} メソッドによってエンコードされた音声データをデコードする
+   *
+   * @params encodedAudioData デコード対象のバイナリ列ないし undefined
+   * @returns デコードされた 20ms 分の音声データ。undefined が渡された場合には代わりにコンフォートノイズが生成される。
+   */
   decode(encodedAudioData: Uint8Array | undefined): Float32Array {
     if (encodedAudioData !== undefined) {
       this.buffer.resize(0, 0); // clear() を使うと「関数が存在しない」というエラーが出るので resize() で代用
@@ -253,6 +326,9 @@ class LyraDecoder {
     }
   }
 
+  /**
+   * デコーダ用に確保したリソースを解放する
+   */
   destroy(): void {
     this.decoder.delete();
     this.buffer.delete();
@@ -306,4 +382,4 @@ function checkBitrate(n: number | undefined): void {
   throw new Error(`unsupported bitrate: expected one of 3200, 6000 or 9200, but got ${n}`);
 }
 
-export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions };
+export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraDecoderOptions };
