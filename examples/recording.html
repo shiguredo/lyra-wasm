@@ -109,18 +109,20 @@
       }
 
       function playProcessedAudio() {
-        let processedAudioDataList = [];
-        let bitrate = Number(document.getElementById('bitrate').value);
-        let enableDtx = document.getElementById('dtx').checked;
-        let encoder = lyraModule.createEncoder({bitrate, enableDtx});
-        let decoder = lyraModule.createDecoder();
+        const processedAudioDataList = [];
+        const bitrate = Number(document.getElementById('bitrate').value);
+        const enableDtx = document.getElementById('dtx').checked;
+        const encoder = lyraModule.createEncoder({bitrate, enableDtx});
+        const decoder = lyraModule.createDecoder();
+        const halfFrameSize = encoder.frameSize / 2;
+        const audioData = new Float32Array(encoder.frameSize);
+
         for (let i = 0; i < originalAudioDataList.length; i += 2) {
-          if (originalAudioDataList.length == i+1) {
+          if (originalAudioDataList.length == i + 1) {
             break;
           }
-          const audioData = new Float32Array(encoder.frameSize);
-          originalAudioDataList[i].copyTo(audioData.subarray(0, encoder.frameSize/2), { planeIndex: 0 });
-          originalAudioDataList[i+1].copyTo(audioData.subarray(encoder.frameSize/2), { planeIndex: 0 });
+          originalAudioDataList[i].copyTo(audioData.subarray(0, halfFrameSize), { planeIndex: 0 });
+          originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
 
           const encoded = encoder.encode(audioData);
           const processedData = decoder.decode(encoded);
@@ -135,6 +137,9 @@
             })
           );
         }
+        encoder.destroy();
+        decoder.destroy();
+
         playAudio(processedAudioDataList);
       }
 
