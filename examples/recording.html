@@ -1,12 +1,41 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title>Lyra Example</title>
   </head>
   <body>
+    <h1>Lyra Example</h1>
+
+    <a href="https://github.com/google/lyra">google/lyra</a> で提供されている音声コーデックを WebAssembly を使ってブラウザで動作させるデモです。<br />
+    ※ このデモは Chrome や Edge などの Chromium ベースのブラウザでのみ動作します
+
+    <br /><br />
+    WebAssembly ビルド用のリポジトリ: <a href="https://github.com/shiguredo/lyra-wasm">shiguredo/lyra-wasm</a><br />
+
+    <h2>使用手順</h2>
+
+    <ol>
+      <li>末尾の「録画開始」ボタンを押下すると、マイク入力の録音が始まります（5 秒間）</li>
+      <li>録音完了後に「再生開始（Lyra）」ボタンを押すことで、Lyra でエンコードされた音声が再生されます</li>
+      <li>「再生開始（オリジナル）」ボタンを押すと比較用にオリジナルの録音音声が再生されます</li>
+    </ol>
+
+    <h2>エンコード設定</h2>
+
+    <b>ビットレート: </b>
+    <select id="bitrate" size="1">
+      <option value="3200">3200 bps</option>
+      <option value="6000" selected>6000 bps</option>
+      <option value="9200">9200 bps</option>
+    </select><br />
+
+    <b>DTX: </b>
+    <input type="checkbox" id="dtx">有効にする<br />
+
     <h2>操作</h2>
-    <input value="録音開始（5秒）" type="button" onClick="startRecording()">
-    <input value="再生開始（Lyra エンコード・デコード後の音声）" type="button" onClick="playProcessedAudio()">
-    <input value="再生開始（オリジナルマイク入力）" type="button" onClick="playOriginalAudio()">
+    <input value="録音開始" type="button" onClick="startRecording()">
+    <input value="再生開始（Lyra）" type="button" onClick="playProcessedAudio()">
+    <input value="再生開始（オリジナル）" type="button" onClick="playOriginalAudio()">
     <br />
 
     <audio id="audio" autoplay playsinline></audio>
@@ -81,7 +110,9 @@
 
       function playProcessedAudio() {
         let processedAudioDataList = [];
-        let encoder = lyraModule.createEncoder(); // TODO: bitrate
+        let bitrate = Number(document.getElementById('bitrate').value);
+        let enableDtx = document.getElementById('dtx').checked;
+        let encoder = lyraModule.createEncoder({bitrate, enableDtx});
         let decoder = lyraModule.createDecoder();
         for (let i = 0; i < originalAudioDataList.length; i += 2) {
           if (originalAudioDataList.length == i+1) {
