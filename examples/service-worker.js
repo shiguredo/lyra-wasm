@@ -4,20 +4,17 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if(!e.request.url.startsWith('http')){
+  if(!e.request.url.startsWith('http') || !e.request.url.startsWith('html')){
     e.respondWith(fetch(e.request));
     return;
   }
 
   e.respondWith(
     fetch(e.request).then((response) => {
+      // SharedArrayBuffer 用に COEP と COOP を設定する
       const headers = new Headers(response.headers);
-
-      if (e.request.url.endsWith('/') || e.request.url.endsWith('/index.html')) {
-        // SharedArrayBuffer 用に COEP と COOP を設定する
-        headers.set("Cross-Origin-Embedder-Policy", "require-corp");
-        headers.set("Cross-Origin-Opener-Policy", "same-origin");
-      }
+      headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+      headers.set("Cross-Origin-Opener-Policy", "same-origin");
 
       return new Response(response.body, {
         status: response.status,

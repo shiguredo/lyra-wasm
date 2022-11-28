@@ -40,10 +40,9 @@
         getUserMedia().then(async (inputStream) => {
           // モデルをロード
           if (lyraModule === undefined) {
-             lyraModule = await Shiguredo.LyraModule.load(
-               "../wasm/bazel-bin/lyra-wasm/",
-               "https://raw.githubusercontent.com/google/lyra/main/model_coeffs/"
-             );
+            const WASM_PATH = "./";
+            const MODEL_PATH = "./";
+            lyraModule = await Shiguredo.LyraModule.load(WASM_PATH, MODEL_PATH);
           }
 
           audioContext = new AudioContext({sampleRate: 48000});
