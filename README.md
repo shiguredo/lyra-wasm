@@ -50,8 +50,6 @@ const decoded = lyraDecoder.decode(encoded);
 
 [examples/recording.html](examples/recording.html) に実際に動作する例があるので、そちらを参照してください。
 
-### WebAssembly
-
 ### ビルド済み WebAssembly ファイルの取得方法
 
 [リリースページ](https://github.com/shiguredo/lyra-wasm/releases)からビルド済みの lyra.wasm および lyra.worker.js ファイルが取得できます。
