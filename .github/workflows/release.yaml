@@ -20,8 +20,8 @@ jobs:
       - run: npm run build
       - name: Release
         uses: softprops/action-gh-release@v1
-        draft: true
         with:
+          draft: true
           files: |
              wasm/bazel-bin/lyra-wasm/lyra.wasm
              wasm/bazel-bin/lyra-wasm/lyra.worker.js
