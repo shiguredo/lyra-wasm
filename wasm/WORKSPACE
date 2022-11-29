@@ -155,9 +155,9 @@ workspace2()
 ##################
 http_archive(
     name = "emsdk",
-    sha256 = "a61ac5c1f70b606a6a9a77ba89094531166a9c462ff794ab6c43b7a25f8b9b22",
-    strip_prefix = "emsdk-01d3d782c8c8b5b227f786408af580db4829f9b3/bazel",
-    url = "https://github.com/emscripten-core/emsdk/archive/01d3d782c8c8b5b227f786408af580db4829f9b3.tar.gz",
+    sha256 = "33235e15eba70ef59ce270042549c27e791c98957e0ee5ff9e00a707de9ec817",
+    strip_prefix = "emsdk-edc4dc5b2094b549b129571115c5102c01151101/bazel",
+    url = "https://github.com/emscripten-core/emsdk/archive/edc4dc5b2094b549b129571115c5102c01151101.tar.gz",
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
