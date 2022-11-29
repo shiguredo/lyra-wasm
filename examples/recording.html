@@ -1,0 +1,178 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Lyra Example</title>
+  </head>
+  <body>
+    <h1>Lyra Example</h1>
+
+    <a href="https://github.com/google/lyra">google/lyra</a> で提供されている音声コーデックを WebAssembly を使ってブラウザで動作させるデモです。<br />
+    <small>※ このデモは Chrome や Edge などの Chromium ベースのブラウザでのみ動作します</small>
+
+    <br /><br />
+    WebAssembly ビルド用のリポジトリ: <a href="https://github.com/shiguredo/lyra-wasm">shiguredo/lyra-wasm</a><br />
+
+    <h2>使用手順</h2>
+
+    <ol>
+      <li>末尾の「録画開始」ボタンを押下すると、マイク入力の録音が始まります（5 秒間）</li>
+      <li>録音完了後に「再生開始（Lyra）」ボタンを押すと Lyra でエンコードされた音声が再生されます</li>
+      <li>「再生開始（オリジナル）」ボタンを押すと比較用にオリジナルの録音音声が再生されます</li>
+    </ol>
+
+    <h2>エンコード設定</h2>
+
+    <b>ビットレート: </b>
+    <select id="bitrate" size="1">
+      <option value="3200">3200 bps</option>
+      <option value="6000" selected>6000 bps</option>
+      <option value="9200">9200 bps</option>
+    </select><br />
+
+    <b>DTX: </b>
+    <input type="checkbox" id="dtx">有効にする<br />
+
+    <small>※ 設定変更時に「録画開始」をやり直す必要はありません</small>
+
+    <h2>操作</h2>
+    <input value="録音開始" type="button" onClick="startRecording()">
+    <input value="再生開始（Lyra）" type="button" onClick="playProcessedAudio()">
+    <input value="再生開始（オリジナル）" type="button" onClick="playOriginalAudio()">
+    <br />
+
+    <audio id="audio" autoplay playsinline></audio>
+    <script src="./lyra.js"></script>
+    <script>
+      if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js').then((registration) => {
+          registration.addEventListener('updatefound', () => {
+            const newServiceWorker = registration.installing;
+            newServiceWorker.addEventListener('statechange', () => {
+              if (newServiceWorker.state == 'activated') {
+                location.reload();
+              }
+            });
+          });
+        });
+      }
+
+      let originalAudioDataList = [];
+      let audioContext;
+      let lyraModule;
+      const recordingDuration = 5 * 1000 * 1000; // micro secs
+
+      function getUserMedia() {
+        const constraints = {audio: {
+          sampleRate: {exact: 48000},
+          channelCount: {exact: 1}
+        }};
+        return navigator.mediaDevices.getUserMedia(constraints);
+      }
+
+      function startRecording() {
+        originalAudioDataList = [];
+
+        getUserMedia().then(async (inputStream) => {
+          // モデルをロード
+          if (lyraModule === undefined) {
+            const WASM_PATH = "./";
+            const MODEL_PATH = "./";
+            lyraModule = await Shiguredo.LyraModule.load(WASM_PATH, MODEL_PATH);
+          }
+
+          audioContext = new AudioContext({sampleRate: 48000});
+
+          // 入力音声を録音
+          const abortController = new AbortController();
+          const signal = abortController.signal;
+          let duration = 0;
+          const inputAudioGenerator = new MediaStreamTrackGenerator({ kind: "audio" });
+          const inputAudioProcessor = new MediaStreamTrackProcessor({ track: inputStream.getAudioTracks()[0] });
+          inputAudioProcessor.readable
+            .pipeThrough(
+              new TransformStream({
+                transform: (data, controller) => {
+                  originalAudioDataList.push(data);
+                  duration += data.duration;
+                  if (duration > recordingDuration) {
+                    abortController.abort();
+                    alert("録音完了");
+                  }
+                }
+              }),
+              { signal })
+            .pipeTo(inputAudioGenerator.writable)
+            .catch((e) => {
+              if (!signal.aborted) {
+                console.log("Input stream transform stopped:", e);
+              }
+            });
+        });
+      }
+
+      function playProcessedAudio() {
+        const processedAudioDataList = [];
+        const bitrate = Number(document.getElementById('bitrate').value);
+        const enableDtx = document.getElementById('dtx').checked;
+        const encoder = lyraModule.createEncoder({bitrate, enableDtx});
+        const decoder = lyraModule.createDecoder();
+        const halfFrameSize = encoder.frameSize / 2;
+        const audioData = new Float32Array(encoder.frameSize);
+
+        let totalEncodedSize = 0;
+        let startTime = performance.now();
+        for (let i = 0; i < originalAudioDataList.length; i += 2) {
+          if (originalAudioDataList.length == i + 1) {
+            break;
+          }
+          originalAudioDataList[i].copyTo(audioData.subarray(0, halfFrameSize), { planeIndex: 0 });
+          originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
+
+          const encoded = encoder.encode(audioData);
+          if (encoded !== undefined) {
+            totalEncodedSize += encoded.length;
+          }
+          const processedData = decoder.decode(encoded);
+          processedAudioDataList.push(
+            new AudioData({
+              format: originalAudioDataList[i].format,
+              sampleRate: 48000,
+              numberOfFrames: encoder.frameSize,
+              numberOfChannels: 1,
+              timestamp: originalAudioDataList[i].timestamp,
+              data: processedData,
+            })
+          );
+        }
+        console.log(`Encoded Size: ${totalEncodedSize} bytes`);
+        console.log(`Elapsed Time: ${performance.now() - startTime} ms`);
+        encoder.destroy();
+        decoder.destroy();
+
+        playAudio(processedAudioDataList);
+      }
+
+      function playOriginalAudio() {
+        playAudio(originalAudioDataList);
+      }
+
+      function playAudio(audioDataList) {
+        const frames = audioDataList[0].numberOfFrames;
+        const buffer = audioContext.createBuffer(
+          1,
+          frames * audioDataList.length,
+          audioDataList[0].sampleRate
+        );
+        const tmpBuffer = new Float32Array(frames);
+        for (const [i, audioData] of audioDataList.entries()) {
+          audioData.copyTo(tmpBuffer, { planeIndex: 0 });
+          buffer.copyToChannel(tmpBuffer, 0, i * frames);
+        }
+        var source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
+      }
+    </script>
+  </body>
+</html>
