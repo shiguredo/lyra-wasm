@@ -208,7 +208,10 @@ class LyraEncoder {
    * @returns エンコード後のバイト列。もし DTX が有効で音声データが無音な場合には undefined が代わりに返される。
    *
    * @throws
-   * 入力音声データが 20ms 単位（サンプル数としては {@link LyraEncoder.frameSize}）ではない場合には例外が送出される
+   *
+   * 以下のいずれかに該当する場合には例外が送出される:
+   * - 入力音声データが 20ms 単位（サンプル数としては {@link LyraEncoder.frameSize}）ではない
+   * - その他、何らかの理由でエンコードに失敗した場合
    */
   encode(audioData: Float32Array): Uint8Array | undefined {
     if (audioData.length !== this.frameSize) {
@@ -223,7 +226,7 @@ class LyraEncoder {
 
     const result = this.encoder.encode(this.buffer);
     if (result === undefined) {
-      return undefined;
+      throw new Error("failed to encode");
     } else {
       try {
         const encodedAudioData = new Uint8Array(result.size());
@@ -231,8 +234,7 @@ class LyraEncoder {
           encodedAudioData[i] = result.get(i);
         }
         if (encodedAudioData.length === 0) {
-          /// google/lyra のドキュメント上は DTX が有効かつ入力が無音な場合には `result === undefined` になるべきだが、
-          /// 現在の実装上では空バイナリが返ってくるので、ここでハンドリングしている
+          // DTX が有効、かつ、 audioData が無音ないしノイズだけを含んでいる場合にはここに来る
           return undefined;
         }
         return encodedAudioData;

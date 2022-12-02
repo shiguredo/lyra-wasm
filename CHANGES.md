@@ -11,6 +11,9 @@
 
 ## develop
 
+- [CHANGE] LyraEncoder.encode() でエンコードに失敗した場合には undefined を返すのではなく例外を送出するようにする
+  - @sile
+
 ## 2022.1.0
 
 **初リリース**
