@@ -124,7 +124,7 @@ class LyraModule {
     } else {
       const frameSize = ((options.sampleRate || DEFAULT_SAMPLE_RATE) * FRAME_DURATION_MS) / 1000;
       const buffer = this.wasmModule.newAudioData(frameSize);
-      return new LyraEncoder(encoder, buffer, options);
+      return new LyraEncoder(this.wasmModule, encoder, buffer, options);
     }
   }
 
@@ -149,7 +149,7 @@ class LyraModule {
       throw new Error("failed to create lyra decoder");
     } else {
       const buffer = this.wasmModule.newBytes();
-      return new LyraDecoder(decoder, buffer, options);
+      return new LyraDecoder(this.wasmModule, decoder, buffer, options);
     }
   }
 }
@@ -158,6 +158,7 @@ class LyraModule {
  * Lyra のエンコーダ
  */
 class LyraEncoder {
+  private wasmModule: lyra_wasm.LyraWasmModule;
   private encoder: lyra_wasm.LyraWasmEncoder;
   private buffer: lyra_wasm.AudioData;
 
@@ -189,7 +190,13 @@ class LyraEncoder {
   /**
    * @internal
    */
-  constructor(encoder: lyra_wasm.LyraWasmEncoder, buffer: lyra_wasm.AudioData, options: LyraEncoderOptions) {
+  constructor(
+    wasmModule: lyra_wasm.LyraWasmModule,
+    encoder: lyra_wasm.LyraWasmEncoder,
+    buffer: lyra_wasm.AudioData,
+    options: LyraEncoderOptions
+  ) {
+    this.wasmModule = wasmModule;
     this.encoder = encoder;
     this.buffer = buffer;
 
@@ -197,7 +204,6 @@ class LyraEncoder {
     this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
     this.bitrate = options.bitrate || DEFAULT_BITRATE;
     this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
-
     this.frameSize = buffer.size();
   }
 
@@ -220,11 +226,14 @@ class LyraEncoder {
       );
     }
 
+    const audioDataInt16 = new Int16Array(audioData.length);
     for (const [i, v] of audioData.entries()) {
-      this.buffer.set(i, convertFloat32ToInt16(v));
+      audioDataInt16[i] = convertFloat32ToInt16(v);
     }
+    this.wasmModule.copyInt16ArrayToAudioData(this.buffer, audioDataInt16);
 
     const result = this.encoder.encode(this.buffer);
+
     if (result === undefined) {
       throw new Error("failed to encode");
     } else {
@@ -233,6 +242,7 @@ class LyraEncoder {
         for (let i = 0; i < encodedAudioData.length; i++) {
           encodedAudioData[i] = result.get(i);
         }
+
         if (encodedAudioData.length === 0) {
           // DTX が有効、かつ、 audioData が無音ないしノイズだけを含んでいる場合にはここに来る
           return undefined;
@@ -270,6 +280,7 @@ class LyraEncoder {
  * Lyra のデコーダ
  */
 class LyraDecoder {
+  private wasmModule: lyra_wasm.LyraWasmModule;
   private decoder: lyra_wasm.LyraWasmDecoder;
   private buffer: lyra_wasm.Bytes;
 
@@ -291,7 +302,13 @@ class LyraDecoder {
   /**
    * @internal
    */
-  constructor(decoder: lyra_wasm.LyraWasmDecoder, buffer: lyra_wasm.Bytes, options: LyraDecoderOptions) {
+  constructor(
+    wasmModule: lyra_wasm.LyraWasmModule,
+    decoder: lyra_wasm.LyraWasmDecoder,
+    buffer: lyra_wasm.Bytes,
+    options: LyraDecoderOptions
+  ) {
+    this.wasmModule = wasmModule;
     this.decoder = decoder;
     this.buffer = buffer;
 
@@ -319,14 +336,18 @@ class LyraDecoder {
     }
 
     const result = this.decoder.decodeSamples(this.frameSize);
+
     if (result === undefined) {
       throw Error("failed to decode samples");
     }
     try {
       const audioData = new Float32Array(this.frameSize);
-      for (let i = 0; i < this.frameSize; i++) {
-        audioData[i] = convertInt16ToFloat32(result.get(i));
+      const audioDataInt16 = new Int16Array(this.frameSize);
+      this.wasmModule.copyAudioDataToInt16Array(audioDataInt16, result);
+      for (const [i, v] of audioDataInt16.entries()) {
+        audioData[i] = convertInt16ToFloat32(v);
       }
+
       return audioData;
     } finally {
       result.delete();

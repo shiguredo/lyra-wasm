@@ -27,8 +27,10 @@ export interface LyraWasmDecoder {
 export interface LyraWasmModule extends EmscriptenModule {
   LyraEncoder: LyraWasmEncoderClass;
   LyraDecoder: LyraWasmDecoderClass;
-  newAudioData(numberOfSamples: number): AudioData;
   newBytes(): Bytes;
+  newAudioData(numberOfSamples: number): AudioData;
+  copyAudioDataToInt16Array(to: Int16Array, from: AudioData): void;
+  copyInt16ArrayToAudioData(to: AudioData, from: Int16Array): void;
   FS_createPreloadedFile(parent: string, name: string, url: string, canRead: boolean, canWrite: boolean): void;
 }
 

@@ -10,12 +10,22 @@
 using namespace emscripten;
 using namespace chromemedia::codec;
 
+void copyAudioDataToInt16Array(const val &to, std::vector<int16_t> &from) {
+  to.call<void>("set", val(typed_memory_view(from.size(), from.data())));
+}
+
+void copyInt16ArrayToAudioData(std::vector<int16_t> &to, const val &from) {
+  val(typed_memory_view(to.size(), to.data())).call<void>("set", from);
+}
+
 EMSCRIPTEN_BINDINGS(lyra) {
   register_vector<uint8_t>("Bytes");
   register_vector<int16_t>("AudioData");
 
-  function("newAudioData", optional_override([](size_t n) { return std::vector<int16_t>(n); }));
   function("newBytes", optional_override([]() { return std::vector<uint8_t>(); }));
+  function("newAudioData", optional_override([](size_t n) { return std::vector<int16_t>(n); }));
+  function("copyAudioDataToInt16Array", &copyAudioDataToInt16Array);
+  function("copyInt16ArrayToAudioData", &copyInt16ArrayToAudioData);
 
   class_<LyraEncoder>("LyraEncoder")
     .class_function("create",
