@@ -11,7 +11,10 @@
 
 ## develop
 
+- [ADD] LYRA_VERSION 定数を追加
+  - @sile
 - [UPDATE] JavaScript と WebAssembly 間での音声データ転送を高速化
+  - @sile
 - [CHANGE] LyraEncoder.encode() でエンコードに失敗した場合には undefined を返すのではなく例外を送出するようにする
   - @sile
 

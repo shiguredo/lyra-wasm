@@ -3,6 +3,8 @@ import * as lyra_wasm from "./lyra_wasm.js";
 
 const MEMFS_MODEL_PATH = "/tmp/";
 
+const LYRA_VERSION = "1.3.0";
+
 /**
  * {@link LyraModule.createEncoder} メソッドに指定可能なオプション
  */
@@ -410,4 +412,4 @@ function checkBitrate(n: number | undefined): void {
   throw new Error(`unsupported bitrate: expected one of 3200, 6000 or 9200, but got ${n}`);
 }
 
-export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraDecoderOptions };
+export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraDecoderOptions, LYRA_VERSION };
