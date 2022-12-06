@@ -4,8 +4,8 @@
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 
-#include "lyra_encoder.h"
-#include "lyra_decoder.h"
+#include "lyra/lyra_encoder.h"
+#include "lyra/lyra_decoder.h"
 
 using namespace emscripten;
 using namespace chromemedia::codec;
