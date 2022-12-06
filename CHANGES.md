@@ -11,6 +11,8 @@
 
 ## develop
 
+- [UPDATE] google/lyra のバージョンを v1.3.1 に更新
+  - @sile
 - [ADD] LYRA_VERSION 定数を追加
   - @sile
 - [UPDATE] JavaScript と WebAssembly 間での音声データ転送を高速化
