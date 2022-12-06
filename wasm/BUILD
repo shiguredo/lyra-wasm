@@ -5,8 +5,8 @@ cc_binary(
     name = "lyra",
     srcs = ["lyra.cc"],
     deps = [
-        "@lyra//:lyra_encoder",
-        "@lyra//:lyra_decoder",
+        "@lyra//lyra:lyra_encoder",
+        "@lyra//lyra:lyra_decoder",
     ],
     linkopts = [
       "--bind",
