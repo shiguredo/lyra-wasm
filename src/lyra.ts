@@ -3,6 +3,11 @@ import * as lyra_wasm from "./lyra_wasm.js";
 
 const MEMFS_MODEL_PATH = "/tmp/";
 
+/**
+ * Lyra のエンコード形式のバージョン。
+ *
+ * エンコード形式に非互換な変更が入った時点での google/lyra のバージョンが格納されている。
+ */
 const LYRA_VERSION = "1.3.0";
 
 /**
