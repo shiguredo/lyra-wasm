@@ -226,18 +226,14 @@ class LyraEncoder {
    * - 入力音声データが 20ms 単位（サンプル数としては {@link LyraEncoder.frameSize}）ではない
    * - その他、何らかの理由でエンコードに失敗した場合
    */
-  encode(audioData: Float32Array): Uint8Array | undefined {
+  encode(audioData: Int16Array): Uint8Array | undefined {
     if (audioData.length !== this.frameSize) {
       throw new Error(
         `expected an audio data with ${this.frameSize} samples, but got one with ${audioData.length} samples`
       );
     }
 
-    const audioDataInt16 = new Int16Array(audioData.length);
-    for (const [i, v] of audioData.entries()) {
-      audioDataInt16[i] = convertFloat32ToInt16(v);
-    }
-    this.wasmModule.copyInt16ArrayToAudioData(this.buffer, audioDataInt16);
+    this.wasmModule.copyInt16ArrayToAudioData(this.buffer, audioData);
 
     const result = this.encoder.encode(this.buffer);
 
@@ -331,7 +327,7 @@ class LyraDecoder {
    * @params encodedAudioData デコード対象のバイナリ列ないし undefined
    * @returns デコードされた 20ms 分の音声データ。undefined が渡された場合には代わりにコンフォートノイズが生成される。
    */
-  decode(encodedAudioData: Uint8Array | undefined): Float32Array {
+  decode(encodedAudioData: Uint8Array | undefined): Int16Array {
     if (encodedAudioData !== undefined) {
       this.buffer.resize(0, 0); // clear() を使うと「関数が存在しない」というエラーが出るので resize() で代用
       for (const v of encodedAudioData) {
@@ -348,13 +344,8 @@ class LyraDecoder {
       throw Error("failed to decode samples");
     }
     try {
-      const audioData = new Float32Array(this.frameSize);
-      const audioDataInt16 = new Int16Array(this.frameSize);
-      this.wasmModule.copyAudioDataToInt16Array(audioDataInt16, result);
-      for (const [i, v] of audioDataInt16.entries()) {
-        audioData[i] = convertInt16ToFloat32(v);
-      }
-
+      const audioData = new Int16Array(this.frameSize);
+      this.wasmModule.copyAudioDataToInt16Array(audioData, result);
       return audioData;
     } finally {
       result.delete();
@@ -368,14 +359,6 @@ class LyraDecoder {
     this.decoder.delete();
     this.buffer.delete();
   }
-}
-
-function convertFloat32ToInt16(v: number): number {
-  return Math.max(-32768, Math.min(Math.round(v * 0x7fff), 32767));
-}
-
-function convertInt16ToFloat32(v: number): number {
-  return v / 0x7fff;
 }
 
 function trimLastSlash(s: string): string {
