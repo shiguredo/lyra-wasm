@@ -11,6 +11,8 @@
 
 ## develop
 
+- [CHANGE] デフォルトサンプルレートを 16000 に変更
+  - @sile
 - [CHANGE] 無駄な変換を最小限にするために encoder / decoder が float-32 ではなく int-16 で音声データをやりとりするようにする
   - @sile
 - [UPDATE] google/lyra のバージョンを v1.3.1 に更新
