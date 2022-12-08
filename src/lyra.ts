@@ -19,25 +19,23 @@ interface LyraEncoderOptions {
    *
    * なお 16000 以外のサンプルレートが指定された場合には、内部的にはリサンプルが行われる。
    *
-   * 指定可能な値: 8000,  16000,  32000, 48000
    * デフォルト値: 16000
    */
-  sampleRate?: number;
+  sampleRate?: 8000 | 16000 | 32000 | 48000;
 
   /**
    * 入力音声データのチャンネル数
    *
-   * 現在は 1 (モノラル、デフォルト値）のみが指定可能
+   * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: number;
+  numberOfChannels?: 1;
 
   /**
    * エンコード後の音声データのビットレート
    *
-   * 指定可能な値: 3200, 6000, 9200
    * デフォルト値: 9200
    */
-  bitrate?: number;
+  bitrate?: 3200 | 6000 | 9200;
 
   /**
    * DTX（discontinuous transmission）を有効にするかどうか
@@ -54,17 +52,16 @@ interface LyraDecoderOptions {
   /**
    * 入力音声データのサンプルレート
    *
-   * 指定可能な値: 8000,  16000,  32000, 48000
    * デフォルト値: 16000
    */
-  sampleRate?: number;
+  sampleRate?: 8000 | 16000 | 32000 | 48000;
 
   /**
    * 入力音声データのチャンネル数
    *
-   * 現在は 1 (モノラル、デフォルト値）のみが指定可能
+   * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: number;
+  numberOfChannels?: 1;
 }
 
 const DEFAULT_SAMPLE_RATE = 16000;
