@@ -118,6 +118,7 @@
         const decoder = lyraModule.createDecoder();
         const halfFrameSize = encoder.frameSize / 2;
         const audioData = new Float32Array(encoder.frameSize);
+        const audioDataInt16 = new Int16Array(encoder.frameSize);
 
         let totalEncodedSize = 0;
         let startTime = performance.now();
@@ -128,11 +129,20 @@
           originalAudioDataList[i].copyTo(audioData.subarray(0, halfFrameSize), { planeIndex: 0 });
           originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
 
-          const encoded = encoder.encode(audioData);
+          for (let [i, v] of audioData.entries()) {
+            audioDataInt16[i] = v * 0x7FFF;
+          }
+
+          const encoded = encoder.encode(audioDataInt16);
           if (encoded !== undefined) {
             totalEncodedSize += encoded.length;
           }
-          const processedData = decoder.decode(encoded);
+          const processedDataInt16 = decoder.decode(encoded);
+          const processedData = new Float32Array(processedDataInt16.length);
+          for (let [i, v] of processedDataInt16.entries()) {
+            processedData[i] = v / 0x7FFF;
+          }
+
           processedAudioDataList.push(
             new AudioData({
               format: originalAudioDataList[i].format,

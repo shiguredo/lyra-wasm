@@ -55,8 +55,8 @@ const decoded = lyraDecoder.decode(encoded);
 [リリースページ](https://github.com/shiguredo/lyra-wasm/releases)からビルド済みの lyra.wasm および lyra.worker.js ファイルが取得できます。
 
 ```console
-$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2022.1.0/lyra.wasm
-$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2022.1.0/lyra.worker.js
+$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2022.2.0/lyra.wasm
+$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2022.2.0/lyra.worker.js
 ```
 
 自前でビルドする場合には、以下のコマンドを実行してください。

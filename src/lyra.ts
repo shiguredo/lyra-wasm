@@ -4,31 +4,38 @@ import * as lyra_wasm from "./lyra_wasm.js";
 const MEMFS_MODEL_PATH = "/tmp/";
 
 /**
+ * Lyra のエンコード形式のバージョン。
+ *
+ * エンコード形式に非互換な変更が入った時点での google/lyra のバージョンが格納されている。
+ */
+const LYRA_VERSION = "1.3.0";
+
+/**
  * {@link LyraModule.createEncoder} メソッドに指定可能なオプション
  */
 interface LyraEncoderOptions {
   /**
    * 入力音声データのサンプルレート
    *
-   * 指定可能な値: 8000,  16000,  32000, 48000
-   * デフォルト値: 48000
+   * なお 16000 以外のサンプルレートが指定された場合には、内部的にはリサンプルが行われる。
+   *
+   * デフォルト値: 16000
    */
-  sampleRate?: number;
+  sampleRate?: 8000 | 16000 | 32000 | 48000;
 
   /**
    * 入力音声データのチャンネル数
    *
-   * 現在は 1 (モノラル、デフォルト値）のみが指定可能
+   * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: number;
+  numberOfChannels?: 1;
 
   /**
    * エンコード後の音声データのビットレート
    *
-   * 指定可能な値: 3200, 6000, 9200
    * デフォルト値: 9200
    */
-  bitrate?: number;
+  bitrate?: 3200 | 6000 | 9200;
 
   /**
    * DTX（discontinuous transmission）を有効にするかどうか
@@ -45,20 +52,19 @@ interface LyraDecoderOptions {
   /**
    * 入力音声データのサンプルレート
    *
-   * 指定可能な値: 8000,  16000,  32000, 48000
-   * デフォルト値: 48000
+   * デフォルト値: 16000
    */
-  sampleRate?: number;
+  sampleRate?: 8000 | 16000 | 32000 | 48000;
 
   /**
    * 入力音声データのチャンネル数
    *
-   * 現在は 1 (モノラル、デフォルト値）のみが指定可能
+   * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: number;
+  numberOfChannels?: 1;
 }
 
-const DEFAULT_SAMPLE_RATE = 48000;
+const DEFAULT_SAMPLE_RATE = 16000;
 const DEFAULT_BITRATE = 9200;
 const DEFAULT_ENABLE_DTX = false;
 const DEFAULT_CHANNELS = 1;
@@ -124,7 +130,7 @@ class LyraModule {
     } else {
       const frameSize = ((options.sampleRate || DEFAULT_SAMPLE_RATE) * FRAME_DURATION_MS) / 1000;
       const buffer = this.wasmModule.newAudioData(frameSize);
-      return new LyraEncoder(encoder, buffer, options);
+      return new LyraEncoder(this.wasmModule, encoder, buffer, options);
     }
   }
 
@@ -149,7 +155,7 @@ class LyraModule {
       throw new Error("failed to create lyra decoder");
     } else {
       const buffer = this.wasmModule.newBytes();
-      return new LyraDecoder(decoder, buffer, options);
+      return new LyraDecoder(this.wasmModule, decoder, buffer, options);
     }
   }
 }
@@ -158,6 +164,7 @@ class LyraModule {
  * Lyra のエンコーダ
  */
 class LyraEncoder {
+  private wasmModule: lyra_wasm.LyraWasmModule;
   private encoder: lyra_wasm.LyraWasmEncoder;
   private buffer: lyra_wasm.AudioData;
 
@@ -189,7 +196,13 @@ class LyraEncoder {
   /**
    * @internal
    */
-  constructor(encoder: lyra_wasm.LyraWasmEncoder, buffer: lyra_wasm.AudioData, options: LyraEncoderOptions) {
+  constructor(
+    wasmModule: lyra_wasm.LyraWasmModule,
+    encoder: lyra_wasm.LyraWasmEncoder,
+    buffer: lyra_wasm.AudioData,
+    options: LyraEncoderOptions
+  ) {
+    this.wasmModule = wasmModule;
     this.encoder = encoder;
     this.buffer = buffer;
 
@@ -197,7 +210,6 @@ class LyraEncoder {
     this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
     this.bitrate = options.bitrate || DEFAULT_BITRATE;
     this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
-
     this.frameSize = buffer.size();
   }
 
@@ -208,31 +220,33 @@ class LyraEncoder {
    * @returns エンコード後のバイト列。もし DTX が有効で音声データが無音な場合には undefined が代わりに返される。
    *
    * @throws
-   * 入力音声データが 20ms 単位（サンプル数としては {@link LyraEncoder.frameSize}）ではない場合には例外が送出される
+   *
+   * 以下のいずれかに該当する場合には例外が送出される:
+   * - 入力音声データが 20ms 単位（サンプル数としては {@link LyraEncoder.frameSize}）ではない
+   * - その他、何らかの理由でエンコードに失敗した場合
    */
-  encode(audioData: Float32Array): Uint8Array | undefined {
+  encode(audioData: Int16Array): Uint8Array | undefined {
     if (audioData.length !== this.frameSize) {
       throw new Error(
         `expected an audio data with ${this.frameSize} samples, but got one with ${audioData.length} samples`
       );
     }
 
-    for (const [i, v] of audioData.entries()) {
-      this.buffer.set(i, convertFloat32ToInt16(v));
-    }
+    this.wasmModule.copyInt16ArrayToAudioData(this.buffer, audioData);
 
     const result = this.encoder.encode(this.buffer);
+
     if (result === undefined) {
-      return undefined;
+      throw new Error("failed to encode");
     } else {
       try {
         const encodedAudioData = new Uint8Array(result.size());
         for (let i = 0; i < encodedAudioData.length; i++) {
           encodedAudioData[i] = result.get(i);
         }
+
         if (encodedAudioData.length === 0) {
-          /// google/lyra のドキュメント上は DTX が有効かつ入力が無音な場合には `result === undefined` になるべきだが、
-          /// 現在の実装上では空バイナリが返ってくるので、ここでハンドリングしている
+          // DTX が有効、かつ、 audioData が無音ないしノイズだけを含んでいる場合にはここに来る
           return undefined;
         }
         return encodedAudioData;
@@ -268,6 +282,7 @@ class LyraEncoder {
  * Lyra のデコーダ
  */
 class LyraDecoder {
+  private wasmModule: lyra_wasm.LyraWasmModule;
   private decoder: lyra_wasm.LyraWasmDecoder;
   private buffer: lyra_wasm.Bytes;
 
@@ -289,7 +304,13 @@ class LyraDecoder {
   /**
    * @internal
    */
-  constructor(decoder: lyra_wasm.LyraWasmDecoder, buffer: lyra_wasm.Bytes, options: LyraDecoderOptions) {
+  constructor(
+    wasmModule: lyra_wasm.LyraWasmModule,
+    decoder: lyra_wasm.LyraWasmDecoder,
+    buffer: lyra_wasm.Bytes,
+    options: LyraDecoderOptions
+  ) {
+    this.wasmModule = wasmModule;
     this.decoder = decoder;
     this.buffer = buffer;
 
@@ -305,7 +326,7 @@ class LyraDecoder {
    * @params encodedAudioData デコード対象のバイナリ列ないし undefined
    * @returns デコードされた 20ms 分の音声データ。undefined が渡された場合には代わりにコンフォートノイズが生成される。
    */
-  decode(encodedAudioData: Uint8Array | undefined): Float32Array {
+  decode(encodedAudioData: Uint8Array | undefined): Int16Array {
     if (encodedAudioData !== undefined) {
       this.buffer.resize(0, 0); // clear() を使うと「関数が存在しない」というエラーが出るので resize() で代用
       for (const v of encodedAudioData) {
@@ -317,14 +338,13 @@ class LyraDecoder {
     }
 
     const result = this.decoder.decodeSamples(this.frameSize);
+
     if (result === undefined) {
       throw Error("failed to decode samples");
     }
     try {
-      const audioData = new Float32Array(this.frameSize);
-      for (let i = 0; i < this.frameSize; i++) {
-        audioData[i] = convertInt16ToFloat32(result.get(i));
-      }
+      const audioData = new Int16Array(this.frameSize);
+      this.wasmModule.copyAudioDataToInt16Array(audioData, result);
       return audioData;
     } finally {
       result.delete();
@@ -338,14 +358,6 @@ class LyraDecoder {
     this.decoder.delete();
     this.buffer.delete();
   }
-}
-
-function convertFloat32ToInt16(v: number): number {
-  return Math.max(-32768, Math.min(Math.round(v * 0x7fff), 32767));
-}
-
-function convertInt16ToFloat32(v: number): number {
-  return v / 0x7fff;
 }
 
 function trimLastSlash(s: string): string {
@@ -387,4 +399,4 @@ function checkBitrate(n: number | undefined): void {
   throw new Error(`unsupported bitrate: expected one of 3200, 6000 or 9200, but got ${n}`);
 }
 
-export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraDecoderOptions };
+export { LyraModule, LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraDecoderOptions, LYRA_VERSION };
