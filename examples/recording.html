@@ -114,8 +114,8 @@
         const processedAudioDataList = [];
         const bitrate = Number(document.getElementById('bitrate').value);
         const enableDtx = document.getElementById('dtx').checked;
-        const encoder = lyraModule.createEncoder({bitrate, enableDtx});
-        const decoder = lyraModule.createDecoder();
+        const encoder = lyraModule.createEncoder({sampleRate: 48000, bitrate, enableDtx});
+        const decoder = lyraModule.createDecoder({sampleRate: 48000});
         const halfFrameSize = encoder.frameSize / 2;
         const audioData = new Float32Array(encoder.frameSize);
         const audioDataInt16 = new Int16Array(encoder.frameSize);
