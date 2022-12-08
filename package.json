@@ -1,6 +1,6 @@
 {
   "name": "@shiguredo/lyra-wasm",
-  "version": "2022.1.0",
+  "version": "2022.2.0",
   "description": "Lyra V2 WebAssembly build",
   "main": "dist/lyra.mjs",
   "module": "dist/lyra.mjs",
