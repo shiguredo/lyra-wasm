@@ -59,6 +59,7 @@
       let originalAudioDataList = [];
       let audioContext;
       let lyraModule;
+      let lyraModule2;
       const recordingDuration = 5 * 1000 * 1000; // micro secs
 
       function getUserMedia() {
@@ -78,6 +79,7 @@
             const WASM_PATH = "./";
             const MODEL_PATH = "./";
             lyraModule = await Shiguredo.LyraModule.load(WASM_PATH, MODEL_PATH);
+            lyraModule2 = await Shiguredo.LyraModule2.load(WASM_PATH, MODEL_PATH);
           }
 
           audioContext = new AudioContext({sampleRate: 48000});
@@ -110,22 +112,23 @@
         });
       }
 
-      function playProcessedAudio() {
+      async function playProcessedAudio() {
         const processedAudioDataList = [];
         const bitrate = Number(document.getElementById('bitrate').value);
         const enableDtx = document.getElementById('dtx').checked;
-        const encoder = lyraModule.createEncoder({sampleRate: 48000, bitrate, enableDtx});
+        const encoder = await lyraModule2.createEncoder({sampleRate: 48000, bitrate, enableDtx});
         const decoder = lyraModule.createDecoder({sampleRate: 48000});
         const halfFrameSize = encoder.frameSize / 2;
-        const audioData = new Float32Array(encoder.frameSize);
-        const audioDataInt16 = new Int16Array(encoder.frameSize);
 
         let totalEncodedSize = 0;
         let startTime = performance.now();
         for (let i = 0; i < originalAudioDataList.length; i += 2) {
+          const audioData = new Float32Array(encoder.frameSize);
+          const audioDataInt16 = new Int16Array(encoder.frameSize);
+
           if (originalAudioDataList.length == i + 1) {
             break;
-          }
+                            }
           originalAudioDataList[i].copyTo(audioData.subarray(0, halfFrameSize), { planeIndex: 0 });
           originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
 
@@ -133,7 +136,7 @@
             audioDataInt16[i] = v * 0x7FFF;
           }
 
-          const encoded = encoder.encode(audioDataInt16);
+          const encoded = await encoder.encode(audioDataInt16);
           if (encoded !== undefined) {
             totalEncodedSize += encoded.length;
           }

@@ -6,7 +6,8 @@ self.addEventListener('install', (e) => {
 self.addEventListener('fetch', (e) => {
   const isTarget =
         e.request.url.startsWith('http') &&
-        e.request.url.includes('recording');
+        (e.request.url.includes('recording') ||
+         e.request.url.includes('lyra_worker.js')) ;
   if(!isTarget) {
     e.respondWith(fetch(e.request));
     return;
@@ -22,6 +23,9 @@ self.addEventListener('fetch', (e) => {
       const headers = new Headers(response.headers);
       headers.set("Cross-Origin-Embedder-Policy", "require-corp");
       headers.set("Cross-Origin-Opener-Policy", "same-origin");
+
+      // TODO: web worker 用の一時的な対処。後でもう少し整理する
+      headers.set("Cross-Origin-Resource-Policy", "cross-origin");
 
       // Chrome でローカルの http で実行する場合に必要
       headers.set("Content-Security-Policy", "treat-as-public-address");

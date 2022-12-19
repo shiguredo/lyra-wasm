@@ -71,6 +71,75 @@ const DEFAULT_CHANNELS = 1;
 
 const FRAME_DURATION_MS = 20;
 
+export class LyraModule2 {
+  worker: Worker;
+
+  private constructor(worker: Worker) {
+    this.worker = worker;
+  }
+
+  static load(wasmPath: string, modelPath: string): Promise<LyraModule2> {
+    const worker = new Worker(trimLastSlash(wasmPath) + "/lyra_worker.js", { type: "module", name: "lyra" });
+    worker.postMessage({ type: "load", wasmPath, modelPath });
+
+    return new Promise((resolve) => {
+      worker.addEventListener(
+        "message",
+        (_msg) => {
+          console.log("loaded");
+          resolve(new LyraModule2(worker));
+        },
+        { once: true }
+      );
+    });
+  }
+
+  createEncoder(options: LyraEncoderOptions = {}): Promise<LyraEncoder2> {
+    checkSampleRate(options.sampleRate);
+    checkNumberOfChannels(options.numberOfChannels);
+    checkBitrate(options.bitrate);
+
+    this.worker.postMessage({ type: "createEncoder", options });
+
+    return new Promise((resolve) => {
+      this.worker.addEventListener(
+        "message",
+        (_msg) => {
+          // TODO: take encoder instance id
+          console.log("created");
+          resolve(new LyraEncoder2(this.worker));
+        },
+        { once: true }
+      );
+    });
+  }
+}
+
+export class LyraEncoder2 {
+  worker: Worker;
+  frameSize: number;
+
+  constructor(worker: Worker) {
+    this.worker = worker;
+    this.frameSize = 960;
+  }
+
+  encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
+    this.worker.postMessage({ type: "encode", audioData }, [audioData.buffer]);
+    return new Promise((resolve) => {
+      this.worker.addEventListener(
+        "message",
+        (msg) => {
+          resolve(msg.data.encoded);
+        },
+        { once: true }
+      );
+    });
+  }
+
+  destroy(): void {}
+}
+
 /**
  * Lyra 用の WebAssembly ファイルやモデルファイルを管理するためのクラス
  */

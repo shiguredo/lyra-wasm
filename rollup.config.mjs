@@ -44,5 +44,18 @@ export default [
       extend: true,
       banner: banner,
     }
+  },
+  {
+    input: 'src/lyra_worker.ts',
+    plugins: [
+      typescript({module: "esnext"}),
+      commonjs(),
+      resolve()
+    ],
+    output: {
+      sourcemap: false,
+      file: './dist/lyra_worker.js',
+      banner: banner,
+    }
   }
 ];
