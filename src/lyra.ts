@@ -113,6 +113,25 @@ export class LyraModule2 {
       );
     });
   }
+
+  createDecoder(options: LyraDecoderOptions = {}): Promise<LyraDecoder2> {
+    checkSampleRate(options.sampleRate);
+    checkNumberOfChannels(options.numberOfChannels);
+
+    this.worker.postMessage({ type: "createDecoder", options });
+
+    return new Promise((resolve) => {
+      this.worker.addEventListener(
+        "message",
+        (_msg) => {
+          // TODO: take decoder instance id
+          console.log("created");
+          resolve(new LyraDecoder2(this.worker));
+        },
+        { once: true }
+      );
+    });
+  }
 }
 
 export class LyraEncoder2 {
@@ -131,6 +150,32 @@ export class LyraEncoder2 {
         "message",
         (msg) => {
           resolve(msg.data.encoded);
+        },
+        { once: true }
+      );
+    });
+  }
+
+  destroy(): void {}
+}
+
+export class LyraDecoder2 {
+  worker: Worker;
+  frameSize: number;
+
+  constructor(worker: Worker) {
+    this.worker = worker;
+    this.frameSize = 960;
+  }
+
+  decode(audioData: Uint8Array | undefined): Promise<Int16Array> {
+    // @ts-ignore
+    this.worker.postMessage({ type: "decode", audioData }, [audioData.buffer]);
+    return new Promise((resolve) => {
+      this.worker.addEventListener(
+        "message",
+        (msg) => {
+          resolve(msg.data.decoded);
         },
         { once: true }
       );

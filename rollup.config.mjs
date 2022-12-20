@@ -45,6 +45,7 @@ export default [
       banner: banner,
     }
   },
+  // TODO: minify
   {
     input: 'src/lyra_worker.ts',
     plugins: [
