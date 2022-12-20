@@ -1,7 +1,6 @@
-import { LyraModule, LyraDecoder, LyraEncoder } from "./lyra";
+import { LyraModule, LyraDecoder } from "./lyra";
 
 let LYRA_MODULE: LyraModule | undefined;
-let LYRA_ENCODER: LyraEncoder | undefined;
 let LYRA_DECODER: LyraDecoder | undefined;
 
 async function loadLyraModule(wasmPath: string, modelPath: string): Promise<void> {
@@ -17,14 +16,30 @@ self.onmessage = async function handleMessageFromMain(msg) {
       break;
     case "createEncoder":
       // @ts-ignore
-      LYRA_ENCODER = LYRA_MODULE.createEncoder(msg.data.options);
+      const encoder = LYRA_MODULE.createEncoder(msg.data.options);
+      const port = msg.data.port;
       self.postMessage({}); // TODO
-      break;
-    case "encode":
+
       // @ts-ignore
-      const encoded = LYRA_ENCODER.encode(msg.data.audioData);
-      self.postMessage({ encoded });
+      port.onmessage = function (e) {
+        if (e.data.type !== "encode") {
+          console.log(e);
+          return;
+        }
+        const encoded = encoder.encode(e.data.audioData);
+        port.postMessage({ encoded });
+      };
+      // @ts-ignore
+      port.onmessageerror = function (e) {
+        console.log("error");
+        console.log(e);
+      };
       break;
+    // case "encode":
+    //   // @ts-ignore
+    //   const encoded = LYRA_ENCODER.encode(msg.data.audioData);
+    //   self.postMessage({ encoded });
+    //   break;
     case "createDecoder":
       // @ts-ignore
       LYRA_DECODER = LYRA_MODULE.createDecoder(msg.data.options);

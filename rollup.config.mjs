@@ -45,6 +45,38 @@ export default [
       banner: banner,
     }
   },
+  {
+    input: 'src/lyra_async.ts',
+    plugins: [
+      typescript({module: "esnext"}),
+      commonjs(),
+      resolve(),
+    ],
+    output: {
+      sourcemap: false,
+      file: './dist/lyra_async.mjs',
+      format: 'module',
+      name: 'Shiguredo',
+      extend: true,
+      banner: banner,
+    }
+  },
+  {
+    input: 'src/lyra_async.ts',
+    plugins: [
+      typescript({module: "esnext"}),
+      commonjs(),
+      resolve()
+    ],
+    output: {
+      sourcemap: false,
+      file: './dist/lyra_async.js',
+      format: 'umd',
+      name: 'Shiguredo',
+      extend: true,
+      banner: banner,
+    }
+  },
   // TODO: minify
   {
     input: 'src/lyra_worker.ts',

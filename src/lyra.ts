@@ -99,7 +99,8 @@ export class LyraModule2 {
     checkNumberOfChannels(options.numberOfChannels);
     checkBitrate(options.bitrate);
 
-    this.worker.postMessage({ type: "createEncoder", options });
+    const channel = new MessageChannel();
+    this.worker.postMessage({ type: "createEncoder", options, port: channel.port2 }, [channel.port2]);
 
     return new Promise((resolve) => {
       this.worker.addEventListener(
@@ -107,7 +108,7 @@ export class LyraModule2 {
         (_msg) => {
           // TODO: take encoder instance id
           console.log("created");
-          resolve(new LyraEncoder2(this.worker));
+          resolve(new LyraEncoder2(channel.port1));
         },
         { once: true }
       );
@@ -135,24 +136,27 @@ export class LyraModule2 {
 }
 
 export class LyraEncoder2 {
-  worker: Worker;
+  port: MessagePort;
   frameSize: number;
 
-  constructor(worker: Worker) {
-    this.worker = worker;
+  constructor(port: MessagePort) {
+    this.port = port;
     this.frameSize = 960;
   }
 
   encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
-    this.worker.postMessage({ type: "encode", audioData }, [audioData.buffer]);
+    this.port.postMessage({ type: "encode", audioData }, [audioData.buffer]);
     return new Promise((resolve) => {
-      this.worker.addEventListener(
-        "message",
-        (msg) => {
-          resolve(msg.data.encoded);
-        },
-        { once: true }
-      );
+      this.port.onmessage = function (msg) {
+        resolve(msg.data.encoded);
+      };
+      // this.port.addEventListener(
+      //   "message",
+      //   (msg) => {
+      //     resolve(msg.data.encoded);
+      //   },
+      //   { once: true }
+      // );
     });
   }
 
