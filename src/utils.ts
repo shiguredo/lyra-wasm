@@ -5,6 +5,11 @@
  */
 const LYRA_VERSION = "1.3.0";
 
+const DEFAULT_SAMPLE_RATE = 16000;
+const DEFAULT_BITRATE = 9200;
+const DEFAULT_ENABLE_DTX = false;
+const DEFAULT_CHANNELS = 1;
+
 /**
  * {@link LyraModule.createEncoder} メソッドに指定可能なオプション
  */
@@ -100,6 +105,10 @@ function checkBitrate(n: number | undefined): void {
 
 export {
   LYRA_VERSION,
+  DEFAULT_SAMPLE_RATE,
+  DEFAULT_BITRATE,
+  DEFAULT_ENABLE_DTX,
+  DEFAULT_CHANNELS,
   LyraEncoderOptions,
   LyraDecoderOptions,
   trimLastSlash,
