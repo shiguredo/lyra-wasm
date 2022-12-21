@@ -1,0 +1,99 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Lyra WebAssembly Benchmark</title>
+  </head>
+  <body>
+    <h1>Lyra WebAssembly Benchmark</h1>
+
+    This benchmark runs <a href="https://github.com/google/lyra">Lyra</a> encoder and decoder on browser
+    for randomlly generated audio data (10 seconds), and show the elapsed times.
+    <br /><br />
+
+    Lyra Webassembly build used in this benchmark is provided in <a href="https://github.com/shiguredo/lyra-wasm">shiguredo/lyra-wasm</a>.
+    <br /><br />
+
+    <input value="Start Benchmark" type="button" onClick="startBenchmark()">
+
+    <br /><br />
+    <div id="benchmark-result"></div>
+
+    <script src="./lyra.js"></script>
+    <script>
+      if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js').then((registration) => {
+          registration.addEventListener('updatefound', () => {
+            const newServiceWorker = registration.installing;
+            newServiceWorker.addEventListener('statechange', () => {
+              if (newServiceWorker.state == 'activated') {
+                location.reload();
+              }
+            });
+          });
+        });
+      }
+
+      async function startBenchmark() {
+          document.getElementById("benchmark-result").innerHTML = "Running benchmark ... (please wait several seconds)";
+
+          console.log("Starts benchmark.");
+          const MODEL_URL = "https://lyra-wasm.shiguredo.app/2022.2.0/";
+
+          const WASM_URL_MAP = {
+              "1.3.1": "https://lyra-wasm.shiguredo.app/2022.2.0/",
+              "1.3.2": "https://lyra-wasm.shiguredo.app/2022.3.0-canary.0/",
+          };
+
+          const encoders = {};
+          const decoders = {};
+          for (const [version, wasmUrl] of Object.entries(WASM_URL_MAP)) {
+              const lyraModule = await Shiguredo.LyraModule.load(wasmUrl, MODEL_URL);
+              encoders[version] = lyraModule.createEncoder();
+              decoders[version] = lyraModule.createDecoder();
+          }
+          console.log("Created Lyra encoders and decoders.");
+
+          const ITERATIONS = 500; // 20 ms * 500 = 10 s
+          const audioDataList = [];
+          for (let i=0; i < ITERATIONS; i++) {
+              audioDataList.push(createAudioData());
+          }
+          console.log("Generated random audio data (10 sec) for benchmark.");
+
+          result = "<b>[Bechmark Result]</b><br />";
+          for (const version in WASM_URL_MAP) {
+              result += `Lyra Version ${version}:<br />`;
+
+              let now = performance.now();
+              let encodedAudioDataList = [];
+              for (const audioData of audioDataList) {
+                  encodedAudioDataList.push(encoders[version].encode(audioData));
+              }
+              console.log(`[${version}] Encode Time: ${performance.now() - now} ms`);
+              result += `- Encode Time: ${performance.now() - now} ms<br />`;
+
+              now = performance.now();
+              for (const encodedAudioData of encodedAudioDataList) {
+                  decoders[version].decode(encodedAudioData);
+              }
+              console.log(`[${version}] Decode Time: ${performance.now() - now} ms`);
+              result += `- Decode Time: ${performance.now() - now} ms<br />`;
+
+              result += "<br />";
+          }
+
+          console.log("Finished benchmark.");
+
+          document.getElementById("benchmark-result").innerHTML = result;
+      }
+
+      function createAudioData() {
+          const data = new Int16Array(320); // 20 ms
+          for (let i; i < data.length; i++) {
+              data[i] = Math.floor(Math.random() * 0xFFFF) - 0x8000;
+          }
+          return data;
+      }
+    </script>
+  </body>
+</html>
