@@ -8,7 +8,7 @@ wasm
 
 ```console
 // ビルド
-$ bazel build -c opt --features=-wasm_warnings_as_errors :lyra-wasm
+$ bazelisk build -c opt --features=-wasm_warnings_as_errors :lyra-wasm
 
 // 生成されたファイルを確認
 $ find  wasm/bazel-bin/lyra-wasm/ -size +1c -type f | xargs wc -c
