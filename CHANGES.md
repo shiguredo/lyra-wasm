@@ -10,6 +10,8 @@
     - バグ修正
 
 ## develop
+- [UPDATE] google/lyra のバージョンを 1.3.2 に更新
+  - @sile
 
 ## 2022.2.0
 
