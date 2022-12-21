@@ -11,7 +11,7 @@ cc_binary(
     linkopts = [
       "--bind",
       "--use-preload-plugins",
-      "-s ALLOW_MEMORY_GROWTH",
+      "-s INITIAL_MEMORY=64MB",
       "-s EXPORT_ES6=1",
       "-s MODULARIZE=1",
       "-s EXPORT_NAME=LyraWasmModule",
