@@ -10,6 +10,11 @@
     - バグ修正
 
 ## develop
+- [CHANGE] emscripten のビルドオプションから `ALLOW_MEMORY_GROWTH` を外して `INITIAL_MEMORY=64MB` を追加
+  - モバイル Safari では `ALLOW_MEMORY_GROWTH` オプション付きでビルドされた wasm ファイルはエラーになるため
+  - @sile
+- [UPDATE] google/lyra のバージョンを 1.3.2 に更新
+  - @sile
 
 ## 2022.2.0
 

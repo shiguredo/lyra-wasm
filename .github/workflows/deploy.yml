@@ -25,6 +25,7 @@ jobs:
           mkdir _site/
           cp dist/lyra.js _site/
           cp examples/recording.html _site/
+          cp examples/lyra-benchmark.html _site/
           cp examples/service-worker.js _site/
           cp wasm/bazel-bin/lyra-wasm/lyra.wasm _site/
           cp wasm/bazel-bin/lyra-wasm/lyra.worker.js _site/
