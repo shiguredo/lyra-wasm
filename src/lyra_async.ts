@@ -53,7 +53,7 @@ class LyraAsyncModule {
       type Response = {
         data: {
           type: "LyraModule.createEncoder.result";
-          result: { encoderId: number; frameSize: number } | { error: Error };
+          result: { frameSize: number } | { error: Error };
         };
       };
       channel.port1.start();
@@ -64,7 +64,7 @@ class LyraAsyncModule {
           if ("error" in result) {
             reject(result.error);
           } else {
-            resolve(new LyraAsyncEncoder(channel.port1, result.encoderId, result.frameSize, options));
+            resolve(new LyraAsyncEncoder(channel.port1, result.frameSize, options));
           }
         },
         { once: true }
@@ -82,7 +82,7 @@ class LyraAsyncModule {
       type Response = {
         data: {
           type: "LyraModule.createDecoder.result";
-          result: { decoderId: number; frameSize: number } | { error: Error };
+          result: { frameSize: number } | { error: Error };
         };
       };
       channel.port1.start();
@@ -93,7 +93,7 @@ class LyraAsyncModule {
           if ("error" in result) {
             reject(result.error);
           } else {
-            resolve(new LyraAsyncDecoder(channel.port1, result.decoderId, result.frameSize, options));
+            resolve(new LyraAsyncDecoder(channel.port1, result.frameSize, options));
           }
         },
         { once: true }
@@ -106,8 +106,6 @@ class LyraAsyncModule {
 }
 
 class LyraAsyncEncoder {
-  private encoderId: number;
-
   readonly port: MessagePort;
   readonly sampleRate: number;
   readonly numberOfChannels: number;
@@ -115,8 +113,7 @@ class LyraAsyncEncoder {
   readonly enableDtx: boolean;
   readonly frameSize: number;
 
-  constructor(port: MessagePort, encoderId: number, frameSize: number, options: LyraEncoderOptions) {
-    this.encoderId = encoderId;
+  constructor(port: MessagePort, frameSize: number, options: LyraEncoderOptions) {
     this.port = port;
     this.frameSize = frameSize;
     this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
@@ -125,15 +122,32 @@ class LyraAsyncEncoder {
     this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
   }
 
+  // TODO: audioData が transfer されることを書く
   // encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
-  //   this.port.postMessage({ type: "LyraEncoder.encode", audioData }, [audioData.buffer]);
-  //   return new Promise((resolve) => {
-  //     // TODO: once
-  //     this.port.onmessage = function (msg) {
-  //       // TODO: handle error result
-  //       resolve(msg.data.encoded);
+  //   const promise: Promise<LyraAsyncEncoder> = new Promise((resolve, reject) => {
+  //     type Response = {
+  //       data: {
+  //         type: "LyraEncoder.encode.result";
+  //         result: { encoderId: number; frameSize: number } | { error: Error };
+  //       };
   //     };
+  //     channel.port1.start();
+  //     channel.port1.addEventListener(
+  //       "message",
+  //       (res: Response) => {
+  //         const result = res.data.result;
+  //         if ("error" in result) {
+  //           reject(result.error);
+  //         } else {
+  //           resolve(new LyraAsyncEncoder(channel.port1, result.encoderId, result.frameSize, options));
+  //         }
+  //       },
+  //       { once: true }
+  //     );
   //   });
+
+  //   this.port.postMessage({ type: "LyraEncoder.encode", encoderId: this.encoderId, audioData }, [audioData.buffer]);
+  //   return promise;
   // }
 
   // destroy(): void {
@@ -143,15 +157,12 @@ class LyraAsyncEncoder {
 }
 
 class LyraAsyncDecoder {
-  private decoderId: number;
-
   readonly port: MessagePort;
   readonly sampleRate: number;
   readonly numberOfChannels: number;
   readonly frameSize: number;
 
-  constructor(port: MessagePort, decoderId: number, frameSize: number, options: LyraDecoderOptions) {
-    this.decoderId = decoderId;
+  constructor(port: MessagePort, frameSize: number, options: LyraDecoderOptions) {
     this.port = port;
     this.frameSize = frameSize;
     this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
