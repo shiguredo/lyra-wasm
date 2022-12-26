@@ -9,7 +9,6 @@ import {
   trimLastSlash,
   checkSampleRate,
   checkNumberOfChannels,
-  checkBitrate,
 } from "./utils";
 
 class LyraAsyncModule {
@@ -29,13 +28,12 @@ class LyraAsyncModule {
     // modelPath を事前に絶対 URL に変換して曖昧性がなくなるようにしておく
     modelPath = new URL(modelPath, document.location.href).toString();
 
-    worker.postMessage({ type: "LyraModule.load", modelPath });
-
-    return new Promise((resolve, reject) => {
+    const promise: Promise<LyraAsyncModule> = new Promise((resolve, reject) => {
+      type Response = { data: { type: "LyraModule.load.result"; result: { error?: Error } } };
       worker.addEventListener(
         "message",
-        (result) => {
-          const error = result.data.error;
+        (res: Response) => {
+          const error = res.data.result.error;
           if (error === undefined) {
             resolve(new LyraAsyncModule(worker));
           } else {
@@ -45,26 +43,38 @@ class LyraAsyncModule {
         { once: true }
       );
     });
+
+    worker.postMessage({ type: "LyraModule.load", modelPath });
+    return promise;
   }
 
   createEncoder(options: LyraEncoderOptions = {}): Promise<LyraAsyncEncoder> {
-    checkSampleRate(options.sampleRate);
-    checkNumberOfChannels(options.numberOfChannels);
-    checkBitrate(options.bitrate);
-
     const channel = new MessageChannel();
-    this.worker.postMessage({ type: "LyraModule.createEncoder", port: channel.port2, options }, [channel.port2]);
 
-    return new Promise((resolve) => {
+    const promise: Promise<LyraAsyncEncoder> = new Promise((resolve, reject) => {
+      type Response = {
+        data: {
+          type: "LyraModule.crateEncoder.result";
+          result: { encoderId: number; frameSize: number } | { error: Error };
+        };
+      };
+      channel.port1.start();
       channel.port1.addEventListener(
         "message",
-        (msg) => {
-          // TODO: handle error response
-          resolve(new LyraAsyncEncoder(channel.port1, msg.data.frameSize, options));
+        (res: Response) => {
+          const result = res.data.result;
+          if ("error" in result) {
+            reject(result.error);
+          } else {
+            resolve(new LyraAsyncEncoder(channel.port1, result.encoderId, result.frameSize, options));
+          }
         },
         { once: true }
       );
     });
+
+    this.worker.postMessage({ type: "LyraModule.createEncoder", port: channel.port2, options }, [channel.port2]);
+    return promise;
   }
 
   createDecoder(options: LyraDecoderOptions = {}): Promise<LyraAsyncDecoder> {
@@ -88,6 +98,8 @@ class LyraAsyncModule {
 }
 
 class LyraAsyncEncoder {
+  private encoderId: number;
+
   readonly port: MessagePort;
   readonly sampleRate: number;
   readonly numberOfChannels: number;
@@ -95,7 +107,8 @@ class LyraAsyncEncoder {
   readonly enableDtx: boolean;
   readonly frameSize: number;
 
-  constructor(port: MessagePort, frameSize: number, options: LyraEncoderOptions) {
+  constructor(port: MessagePort, encoderId: number, frameSize: number, options: LyraEncoderOptions) {
+    this.encoderId = encoderId;
     this.port = port;
     this.frameSize = frameSize;
     this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
@@ -117,7 +130,7 @@ class LyraAsyncEncoder {
 
   // TODO: FinalizationRegistry
   destroy(): void {
-    this.port.postMessage({ type: "LyraEncoder.destroy" });
+    this.port.postMessage({ type: "LyraEncoder.destroy", encoderId: this.encoderId });
     this.port.close();
   }
 }
