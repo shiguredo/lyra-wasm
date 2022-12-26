@@ -1,5 +1,5 @@
-import { LyraEncoder, LyraEncoderOptions, LyraModule } from "./lyra";
-import { DEFAULT_CHANNELS, DEFAULT_ENABLE_DTX, DEFAULT_SAMPLE_RATE } from "./utils";
+import { LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraModule } from "./lyra";
+import { DEFAULT_CHANNELS, DEFAULT_ENABLE_DTX, DEFAULT_SAMPLE_RATE, LyraDecoderOptions } from "./utils";
 
 let LYRA_MODULE: LyraModule | undefined;
 
@@ -16,10 +16,30 @@ class SharedLyraEncoder {
   }
 
   static key(options: LyraEncoderOptions): string {
+    // NOTE: ビットレートは動的に変更可能なのでキーには含めない
     const sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
     const numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
     const enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
     return `${sampleRate}:${numberOfChannels}:${enableDtx}`;
+  }
+}
+
+let LYRA_DECODER_ID: number = 0;
+const LYRA_DECODER_POOL: Map<string, SharedLyraDecoder> = new Map();
+
+class SharedLyraDecoder {
+  decoder: LyraDecoder;
+  ports: Map<number, MessagePort>;
+
+  constructor(decoder: LyraDecoder) {
+    this.decoder = decoder;
+    this.ports = new Map();
+  }
+
+  static key(options: LyraDecoderOptions): string {
+    const sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
+    const numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
+    return `${sampleRate}:${numberOfChannels}`;
   }
 }
 
@@ -46,35 +66,32 @@ function createLyraEncoder(options: LyraEncoderOptions, port: MessagePort): { en
   return { encoderId, frameSize: sharedEncoder.encoder.frameSize };
 }
 
-// case "createEncoder":
-//   // @ts-ignore
-//   const encoder = LYRA_MODULE.createEncoder(msg.data.options);
-//   const port = msg.data.port;
-//   self.postMessage({}); // TODO
+function createLyraDecoder(options: LyraDecoderOptions, port: MessagePort): { decoderId: number; frameSize: number } {
+  if (LYRA_MODULE === undefined) {
+    throw new Error("LYRA_MODULE is undefined");
+  }
 
-//   // @ts-ignore
-//   port.onmessage = function (e) {
-//     if (e.data.type !== "encode") {
-//       console.log(e);
-//       return;
-//     }
-//     const encoded = encoder.encode(e.data.audioData);
-//     port.postMessage({ encoded });
-//   };
-//   // @ts-ignore
-//   port.onmessageerror = function (e) {
-//     console.log("error");
-//     console.log(e);
-//   };
-//   break;
+  const key = SharedLyraDecoder.key(options);
+  let sharedDecoder = LYRA_DECODER_POOL.get(key);
+  if (sharedDecoder === undefined) {
+    sharedDecoder = new SharedLyraDecoder(LYRA_MODULE.createDecoder(options));
+  }
+
+  const decoderId = LYRA_DECODER_ID++;
+  sharedDecoder.ports.set(decoderId, port);
+
+  return { decoderId, frameSize: sharedDecoder.decoder.frameSize };
+}
 
 type Message = { data: MessageData };
 
 type MessageData =
   | { type: "LyraModule.load"; modelPath: string }
-  | { type: "LyraModule.createEncoder"; options: LyraEncoderOptions; port: MessagePort };
+  | { type: "LyraModule.createEncoder"; options: LyraEncoderOptions; port: MessagePort }
+  | { type: "LyraModule.createDecoder"; options: LyraDecoderOptions; port: MessagePort };
 
 self.onmessage = async function handleMessage(msg: Message) {
+  let port;
   switch (msg.data.type) {
     case "LyraModule.load":
       try {
@@ -85,7 +102,7 @@ self.onmessage = async function handleMessage(msg: Message) {
       }
       break;
     case "LyraModule.createEncoder":
-      const port = msg.data.port;
+      port = msg.data.port;
       try {
         const result = createLyraEncoder(msg.data.options, port);
         port.postMessage({ type: `${msg.data.type}.result`, result });
@@ -93,21 +110,15 @@ self.onmessage = async function handleMessage(msg: Message) {
         port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
       }
       break;
-    // // case "encode":
-    // //   // @ts-ignore
-    // //   const encoded = LYRA_ENCODER.encode(msg.data.audioData);
-    // //   self.postMessage({ encoded });
-    // //   break;
-    // case "createDecoder":
-    //   // @ts-ignore
-    //   LYRA_DECODER = LYRA_MODULE.createDecoder(msg.data.options);
-    //   self.postMessage({}); // TODO
-    //   break;
-    // case "encode":
-    //   // @ts-ignore
-    //   const decoded = LYRA_DECODER.encode(msg.data.audioData);
-    //   self.postMessage({ decoded });
-    //   break;
+    case "LyraModule.createDecoder":
+      port = msg.data.port;
+      try {
+        const result = createLyraDecoder(msg.data.options, port);
+        port.postMessage({ type: `${msg.data.type}.result`, result });
+      } catch (error) {
+        port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+      }
+      break;
     default:
       console.warn("received unknown message");
       console.warn(msg);
