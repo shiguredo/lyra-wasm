@@ -32,7 +32,7 @@ function createLyraEncoder(options: LyraEncoderOptions): LyraEncoder {
 
   const key = encoderPoolKey(options);
 
-  let weakEncoder = LYRA_ENCODER_POOL.get(key);
+  const weakEncoder = LYRA_ENCODER_POOL.get(key);
   let encoder = weakEncoder && weakEncoder.deref();
   if (encoder !== undefined) {
     return encoder;
@@ -50,7 +50,7 @@ function createLyraDecoder(options: LyraDecoderOptions): LyraDecoder {
 
   const key = decoderPoolKey(options);
 
-  let weakDecoder = LYRA_DECODER_POOL.get(key);
+  const weakDecoder = LYRA_DECODER_POOL.get(key);
   let decoder = weakDecoder && weakDecoder.deref();
   if (decoder !== undefined) {
     return decoder;
