@@ -97,6 +97,9 @@ self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
         const port = msg.data.port;
         try {
           const decoder = createLyraDecoder(msg.data.options);
+          port.onmessage = (msg) => {
+            handleDecoderMessage(port, decoder, msg);
+          };
           port.postMessage({ type: `${msg.data.type}.result`, result: { frameSize: decoder.frameSize } });
         } catch (error) {
           port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
@@ -121,12 +124,42 @@ function handleEncoderMessage(port: MessagePort, encoder: LyraEncoder, msg: Enco
       try {
         encoder.setBitrate(msg.data.bitrate);
         const encodedAudioData = encoder.encode(msg.data.audioData);
-        port.postMessage({ type: `${msg.data.type}.result`, result: { encodedAudioData } });
+        const response = { type: `${msg.data.type}.result`, result: { encodedAudioData } };
+        if (encodedAudioData === undefined) {
+          port.postMessage(response);
+        } else {
+          port.postMessage(response, [encodedAudioData.buffer]);
+        }
       } catch (error) {
         port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
       }
       break;
     case "LyraEncoder.destroy":
+      port.onmessage = null;
+      break;
+    default:
+      console.warn("received unknown message");
+      console.warn(msg);
+  }
+}
+
+type DecoderMessage = { data: DecoderMessageData };
+
+type DecoderMessageData =
+  | { type: "LyraDecoder.decode"; encodedAudioData: Uint8Array | undefined }
+  | { type: "LyraDecoder.destroy" };
+
+function handleDecoderMessage(port: MessagePort, decoder: LyraDecoder, msg: DecoderMessage): void {
+  switch (msg.data.type) {
+    case "LyraDecoder.decode":
+      try {
+        const audioData = decoder.decode(msg.data.encodedAudioData);
+        port.postMessage({ type: `${msg.data.type}.result`, result: { audioData } }, [audioData.buffer]);
+      } catch (error) {
+        port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+      }
+      break;
+    case "LyraDecoder.destroy":
       port.onmessage = null;
       break;
     default:

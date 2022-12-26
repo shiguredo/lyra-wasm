@@ -68,6 +68,7 @@ class LyraAsyncModule {
         },
         { once: true }
       );
+      channel.port1.start();
     });
 
     this.worker.postMessage({ type: "LyraModule.createEncoder", port: channel.port2, options }, [channel.port2]);
@@ -96,6 +97,7 @@ class LyraAsyncModule {
         },
         { once: true }
       );
+      channel.port1.start();
     });
 
     this.worker.postMessage({ type: "LyraModule.createDecoder", port: channel.port2, options }, [channel.port2]);
@@ -166,25 +168,41 @@ class LyraAsyncDecoder {
     this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
   }
 
-  // decode(encodedAudioData: Uint8Array | undefined): Promise<Int16Array> {
-  //   if (encodedAudioData === undefined) {
-  //     this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData });
-  //   } else {
-  //     this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData }, [encodedAudioData.buffer]);
-  //   }
-  //   return new Promise((resolve) => {
-  //     // TODO: once
-  //     this.port.onmessage = function (msg) {
-  //       // TODO: handle error result
-  //       resolve(msg.data.decoded);
-  //     };
-  //   });
-  // }
+  // TODO: encodedAudioData が transfer されることを書く
+  decode(encodedAudioData: Uint8Array | undefined): Promise<Int16Array> {
+    const promise: Promise<Int16Array> = new Promise((resolve, reject) => {
+      type Response = {
+        data: {
+          type: "LyraDecoder.decode.result";
+          result: { audioData: Int16Array } | { error: Error };
+        };
+      };
+      this.port.addEventListener(
+        "message",
+        (res: Response) => {
+          const result = res.data.result;
+          if ("error" in result) {
+            reject(result.error);
+          } else {
+            resolve(result.audioData);
+          }
+        },
+        { once: true }
+      );
+    });
 
-  // destroy(): void {
-  //   this.port.postMessage({ type: "LyraDecoder.destroy", decoderId: this.decoderId });
-  //   this.port.close();
-  // }
+    if (encodedAudioData === undefined) {
+      this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData });
+    } else {
+      this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData }, [encodedAudioData.buffer]);
+    }
+    return promise;
+  }
+
+  destroy(): void {
+    this.port.postMessage({ type: "LyraDecoder.destroy" });
+    this.port.close();
+  }
 }
 
 export { LYRA_VERSION, LyraDecoderOptions, LyraEncoderOptions, LyraAsyncModule, LyraAsyncEncoder, LyraAsyncDecoder };
