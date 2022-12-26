@@ -69,7 +69,6 @@ type ModuleMessageData =
   | { type: "LyraModule.createDecoder"; options: LyraDecoderOptions; port: MessagePort };
 
 self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
-  let port;
   switch (msg.data.type) {
     case "LyraModule.load":
       try {
@@ -80,22 +79,28 @@ self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
       }
       break;
     case "LyraModule.createEncoder":
-      port = msg.data.port;
-      try {
-        const encoder = createLyraEncoder(msg.data.options);
-        //port.onmessage = handleEncoderMessage();
-        port.postMessage({ type: `${msg.data.type}.result`, result: { frameSize: encoder.frameSize } });
-      } catch (error) {
-        port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+      {
+        const port = msg.data.port;
+        try {
+          const encoder = createLyraEncoder(msg.data.options);
+          port.onmessage = (msg) => {
+            handleEncoderMessage(port, encoder, msg);
+          };
+          port.postMessage({ type: `${msg.data.type}.result`, result: { frameSize: encoder.frameSize } });
+        } catch (error) {
+          port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+        }
       }
       break;
     case "LyraModule.createDecoder":
-      port = msg.data.port;
-      try {
-        const decoder = createLyraDecoder(msg.data.options);
-        port.postMessage({ type: `${msg.data.type}.result`, result: { frameSize: decoder.frameSize } });
-      } catch (error) {
-        port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+      {
+        const port = msg.data.port;
+        try {
+          const decoder = createLyraDecoder(msg.data.options);
+          port.postMessage({ type: `${msg.data.type}.result`, result: { frameSize: decoder.frameSize } });
+        } catch (error) {
+          port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+        }
       }
       break;
     default:
@@ -103,3 +108,29 @@ self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
       console.warn(msg);
   }
 };
+
+type EncoderMessage = { data: EncoderMessageData };
+
+type EncoderMessageData =
+  | { type: "LyraEncoder.encode"; audioData: Int16Array; bitrate: 3200 | 6000 | 9200 }
+  | { type: "LyraEncoder.destroy" };
+
+function handleEncoderMessage(port: MessagePort, encoder: LyraEncoder, msg: EncoderMessage): void {
+  switch (msg.data.type) {
+    case "LyraEncoder.encode":
+      try {
+        encoder.setBitrate(msg.data.bitrate);
+        const encodedAudioData = encoder.encode(msg.data.audioData);
+        port.postMessage({ type: `${msg.data.type}.result`, result: { encodedAudioData } });
+      } catch (error) {
+        port.postMessage({ type: `${msg.data.type}.result`, result: { error } });
+      }
+      break;
+    case "LyraEncoder.destroy":
+      port.onmessage = null;
+      break;
+    default:
+      console.warn("received unknown message");
+      console.warn(msg);
+  }
+}

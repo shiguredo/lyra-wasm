@@ -56,7 +56,6 @@ class LyraAsyncModule {
           result: { frameSize: number } | { error: Error };
         };
       };
-      channel.port1.start();
       channel.port1.addEventListener(
         "message",
         (res: Response) => {
@@ -85,7 +84,6 @@ class LyraAsyncModule {
           result: { frameSize: number } | { error: Error };
         };
       };
-      channel.port1.start();
       channel.port1.addEventListener(
         "message",
         (res: Response) => {
@@ -123,37 +121,36 @@ class LyraAsyncEncoder {
   }
 
   // TODO: audioData が transfer されることを書く
-  // encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
-  //   const promise: Promise<LyraAsyncEncoder> = new Promise((resolve, reject) => {
-  //     type Response = {
-  //       data: {
-  //         type: "LyraEncoder.encode.result";
-  //         result: { encoderId: number; frameSize: number } | { error: Error };
-  //       };
-  //     };
-  //     channel.port1.start();
-  //     channel.port1.addEventListener(
-  //       "message",
-  //       (res: Response) => {
-  //         const result = res.data.result;
-  //         if ("error" in result) {
-  //           reject(result.error);
-  //         } else {
-  //           resolve(new LyraAsyncEncoder(channel.port1, result.encoderId, result.frameSize, options));
-  //         }
-  //       },
-  //       { once: true }
-  //     );
-  //   });
+  encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
+    const promise: Promise<Uint8Array | undefined> = new Promise((resolve, reject) => {
+      type Response = {
+        data: {
+          type: "LyraEncoder.encode.result";
+          result: { encodedAudioData: Uint8Array | undefined } | { error: Error };
+        };
+      };
+      this.port.addEventListener(
+        "message",
+        (res: Response) => {
+          const result = res.data.result;
+          if ("error" in result) {
+            reject(result.error);
+          } else {
+            resolve(result.encodedAudioData);
+          }
+        },
+        { once: true }
+      );
+    });
 
-  //   this.port.postMessage({ type: "LyraEncoder.encode", encoderId: this.encoderId, audioData }, [audioData.buffer]);
-  //   return promise;
-  // }
+    this.port.postMessage({ type: "LyraEncoder.encode", audioData, bitrate: this.bitrate }, [audioData.buffer]);
+    return promise;
+  }
 
-  // destroy(): void {
-  //   this.port.postMessage({ type: "LyraEncoder.destroy", encoderId: this.encoderId });
-  //   this.port.close();
-  // }
+  destroy(): void {
+    this.port.postMessage({ type: "LyraEncoder.destroy" });
+    this.port.close();
+  }
 }
 
 class LyraAsyncDecoder {
