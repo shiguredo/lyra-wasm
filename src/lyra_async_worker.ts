@@ -3,7 +3,7 @@ import { DEFAULT_CHANNELS, DEFAULT_ENABLE_DTX, DEFAULT_SAMPLE_RATE, LyraDecoderO
 
 let LYRA_MODULE: LyraModule | undefined;
 
-let LYRA_ENCODER_ID: number = 0;
+let LYRA_ENCODER_ID = 0;
 const LYRA_ENCODER_POOL: Map<string, SharedLyraEncoder> = new Map();
 
 class SharedLyraEncoder {
@@ -20,11 +20,11 @@ class SharedLyraEncoder {
     const sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
     const numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
     const enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
-    return `${sampleRate}:${numberOfChannels}:${enableDtx}`;
+    return `${sampleRate}:${numberOfChannels}:${enableDtx ? 1 : 0}`;
   }
 }
 
-let LYRA_DECODER_ID: number = 0;
+let LYRA_DECODER_ID = 0;
 const LYRA_DECODER_POOL: Map<string, SharedLyraDecoder> = new Map();
 
 class SharedLyraDecoder {

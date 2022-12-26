@@ -125,21 +125,21 @@ class LyraAsyncEncoder {
     this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
   }
 
-  encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
-    this.port.postMessage({ type: "LyraEncoder.encode", audioData }, [audioData.buffer]);
-    return new Promise((resolve) => {
-      // TODO: once
-      this.port.onmessage = function (msg) {
-        // TODO: handle error result
-        resolve(msg.data.encoded);
-      };
-    });
-  }
+  // encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
+  //   this.port.postMessage({ type: "LyraEncoder.encode", audioData }, [audioData.buffer]);
+  //   return new Promise((resolve) => {
+  //     // TODO: once
+  //     this.port.onmessage = function (msg) {
+  //       // TODO: handle error result
+  //       resolve(msg.data.encoded);
+  //     };
+  //   });
+  // }
 
-  destroy(): void {
-    this.port.postMessage({ type: "LyraEncoder.destroy", encoderId: this.encoderId });
-    this.port.close();
-  }
+  // destroy(): void {
+  //   this.port.postMessage({ type: "LyraEncoder.destroy", encoderId: this.encoderId });
+  //   this.port.close();
+  // }
 }
 
 class LyraAsyncDecoder {
@@ -158,25 +158,25 @@ class LyraAsyncDecoder {
     this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
   }
 
-  decode(encodedAudioData: Uint8Array | undefined): Promise<Int16Array> {
-    if (encodedAudioData === undefined) {
-      this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData });
-    } else {
-      this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData }, [encodedAudioData.buffer]);
-    }
-    return new Promise((resolve) => {
-      // TODO: once
-      this.port.onmessage = function (msg) {
-        // TODO: handle error result
-        resolve(msg.data.decoded);
-      };
-    });
-  }
+  // decode(encodedAudioData: Uint8Array | undefined): Promise<Int16Array> {
+  //   if (encodedAudioData === undefined) {
+  //     this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData });
+  //   } else {
+  //     this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData }, [encodedAudioData.buffer]);
+  //   }
+  //   return new Promise((resolve) => {
+  //     // TODO: once
+  //     this.port.onmessage = function (msg) {
+  //       // TODO: handle error result
+  //       resolve(msg.data.decoded);
+  //     };
+  //   });
+  // }
 
-  destroy(): void {
-    this.port.postMessage({ type: "LyraDecoder.destroy", decoderId: this.decoderId });
-    this.port.close();
-  }
+  // destroy(): void {
+  //   this.port.postMessage({ type: "LyraDecoder.destroy", decoderId: this.decoderId });
+  //   this.port.close();
+  // }
 }
 
 export { LYRA_VERSION, LyraDecoderOptions, LyraEncoderOptions, LyraAsyncModule, LyraAsyncEncoder, LyraAsyncDecoder };
