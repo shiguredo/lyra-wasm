@@ -77,9 +77,8 @@ export default [
       banner: banner,
     }
   },
-  // TODO: minify
   {
-    input: 'src/lyra_worker.ts',
+    input: 'src/lyra_async_worker.ts',
     plugins: [
       typescript({module: "esnext"}),
       commonjs(),
@@ -87,7 +86,7 @@ export default [
     ],
     output: {
       sourcemap: false,
-      file: './dist/lyra_worker.js',
+      file: './dist/lyra_async_worker.js',
       banner: banner,
     }
   }

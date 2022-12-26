@@ -44,6 +44,8 @@ class LyraModule {
         const fileNames = ["lyra_config.binarypb", "soundstream_encoder.tflite", "quantizer.tflite", "lyragan.tflite"];
         for (const fileName of fileNames) {
           const url = trimLastSlash(modelPath) + "/" + fileName;
+
+          // FIXME(sile): url からのダウンロードに失敗しても catch ができないので fetch で置き換える
           wasmModule.FS_createPreloadedFile(MEMFS_MODEL_PATH, fileName, url, true, false);
         }
       },

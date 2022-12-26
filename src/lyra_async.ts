@@ -24,11 +24,26 @@ class LyraAsyncModule {
       type: "module",
       name: "lyra_async_worker",
     });
-    worker.postMessage({ type: "LyraModule.load", wasmPath, modelPath });
 
-    // TODO: handle error response
-    return new Promise((resolve) => {
-      worker.addEventListener("message", () => resolve(new LyraAsyncModule(worker)), { once: true });
+    // モデルは web worker の中でロードされることになるので、
+    // modelPath を事前に絶対 URL に変換して曖昧性がなくなるようにしておく
+    modelPath = new URL(modelPath, document.location.href).toString();
+
+    worker.postMessage({ type: "LyraModule.load", modelPath });
+
+    return new Promise((resolve, reject) => {
+      worker.addEventListener(
+        "message",
+        (result) => {
+          const error = result.data.error;
+          if (error === undefined) {
+            resolve(new LyraAsyncModule(worker));
+          } else {
+            reject(error);
+          }
+        },
+        { once: true }
+      );
     });
   }
 
