@@ -59,7 +59,6 @@
       let originalAudioDataList = [];
       let audioContext;
       let lyraModule;
-      let lyraModule2;
       const recordingDuration = 5 * 1000 * 1000; // micro secs
 
       function getUserMedia() {
@@ -79,7 +78,6 @@
             const WASM_PATH = "./";
             const MODEL_PATH = "./";
             lyraModule = await Shiguredo.LyraModule.load(WASM_PATH, MODEL_PATH);
-            lyraModule2 = await Shiguredo.LyraModule2.load(WASM_PATH, MODEL_PATH);
           }
 
           audioContext = new AudioContext({sampleRate: 48000});
@@ -116,8 +114,8 @@
         const processedAudioDataList = [];
         const bitrate = Number(document.getElementById('bitrate').value);
         const enableDtx = document.getElementById('dtx').checked;
-        const encoder = await lyraModule2.createEncoder({sampleRate: 48000, bitrate, enableDtx});
-        const decoder = lyraModule.createDecoder({sampleRate: 48000});
+        const encoder = await lyraModule.createEncoder({sampleRate: 48000, bitrate, enableDtx});
+        const decoder = await lyraModule.createDecoder({sampleRate: 48000});
         const halfFrameSize = encoder.frameSize / 2;
 
         let totalEncodedSize = 0;
@@ -140,7 +138,7 @@
           if (encoded !== undefined) {
             totalEncodedSize += encoded.length;
           }
-          const processedDataInt16 = decoder.decode(encoded);
+          const processedDataInt16 = await decoder.decode(encoded);
           const processedData = new Float32Array(processedDataInt16.length);
           for (let [i, v] of processedDataInt16.entries()) {
             processedData[i] = v / 0x7FFF;

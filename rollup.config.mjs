@@ -46,23 +46,7 @@ export default [
     }
   },
   {
-    input: 'src/lyra_async.ts',
-    plugins: [
-      typescript({module: "esnext"}),
-      commonjs(),
-      resolve(),
-    ],
-    output: {
-      sourcemap: false,
-      file: './dist/lyra_async.mjs',
-      format: 'module',
-      name: 'Shiguredo',
-      extend: true,
-      banner: banner,
-    }
-  },
-  {
-    input: 'src/lyra_async.ts',
+    input: 'src/lyra_sync_worker.ts',
     plugins: [
       typescript({module: "esnext"}),
       commonjs(),
@@ -70,23 +54,7 @@ export default [
     ],
     output: {
       sourcemap: false,
-      file: './dist/lyra_async.js',
-      format: 'umd',
-      name: 'Shiguredo',
-      extend: true,
-      banner: banner,
-    }
-  },
-  {
-    input: 'src/lyra_async_worker.ts',
-    plugins: [
-      typescript({module: "esnext"}),
-      commonjs(),
-      resolve()
-    ],
-    output: {
-      sourcemap: false,
-      file: './dist/lyra_async_worker.js',
+      file: './dist/lyra_sync_worker.js',
       banner: banner,
     }
   }

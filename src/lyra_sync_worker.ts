@@ -1,9 +1,9 @@
-import { LyraDecoder, LyraEncoder, LyraEncoderOptions, LyraModule } from "./lyra";
+import { LyraSyncDecoder, LyraSyncEncoder, LyraEncoderOptions, LyraSyncModule } from "./lyra_sync";
 import { DEFAULT_CHANNELS, DEFAULT_ENABLE_DTX, DEFAULT_SAMPLE_RATE, LyraDecoderOptions } from "./utils";
 
-let LYRA_MODULE: LyraModule | undefined;
-const LYRA_ENCODER_POOL: Map<string, WeakRef<LyraEncoder>> = new Map();
-const LYRA_DECODER_POOL: Map<string, WeakRef<LyraDecoder>> = new Map();
+let LYRA_MODULE: LyraSyncModule | undefined;
+const LYRA_ENCODER_POOL: Map<string, WeakRef<LyraSyncEncoder>> = new Map();
+const LYRA_DECODER_POOL: Map<string, WeakRef<LyraSyncDecoder>> = new Map();
 
 function encoderPoolKey(options: LyraEncoderOptions): string {
   // NOTE: ビットレートは動的に変更可能なのでキーには含めない
@@ -22,10 +22,10 @@ function decoderPoolKey(options: LyraDecoderOptions): string {
 async function loadLyraModule(modelPath: string): Promise<void> {
   // モデルファイルは web worker ファイルと同じディレクトリに配置されている
   const wasmPath = "./";
-  LYRA_MODULE = await LyraModule.load(wasmPath, modelPath);
+  LYRA_MODULE = await LyraSyncModule.load(wasmPath, modelPath);
 }
 
-function createLyraEncoder(options: LyraEncoderOptions): LyraEncoder {
+function createLyraEncoder(options: LyraEncoderOptions): LyraSyncEncoder {
   if (LYRA_MODULE === undefined) {
     throw new Error("LYRA_MODULE is undefined");
   }
@@ -43,7 +43,7 @@ function createLyraEncoder(options: LyraEncoderOptions): LyraEncoder {
   return encoder;
 }
 
-function createLyraDecoder(options: LyraDecoderOptions): LyraDecoder {
+function createLyraDecoder(options: LyraDecoderOptions): LyraSyncDecoder {
   if (LYRA_MODULE === undefined) {
     throw new Error("LYRA_MODULE is undefined");
   }
@@ -118,7 +118,7 @@ type EncoderMessageData =
   | { type: "LyraEncoder.encode"; audioData: Int16Array; bitrate: 3200 | 6000 | 9200 }
   | { type: "LyraEncoder.destroy" };
 
-function handleEncoderMessage(port: MessagePort, encoder: LyraEncoder, msg: EncoderMessage): void {
+function handleEncoderMessage(port: MessagePort, encoder: LyraSyncEncoder, msg: EncoderMessage): void {
   switch (msg.data.type) {
     case "LyraEncoder.encode":
       try {
@@ -149,7 +149,7 @@ type DecoderMessageData =
   | { type: "LyraDecoder.decode"; encodedAudioData: Uint8Array | undefined }
   | { type: "LyraDecoder.destroy" };
 
-function handleDecoderMessage(port: MessagePort, decoder: LyraDecoder, msg: DecoderMessage): void {
+function handleDecoderMessage(port: MessagePort, decoder: LyraSyncDecoder, msg: DecoderMessage): void {
   switch (msg.data.type) {
     case "LyraDecoder.decode":
       try {
