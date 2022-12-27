@@ -76,7 +76,7 @@
           // モデルをロード
           if (lyraModule === undefined) {
             const WASM_PATH = "./";
-            const MODEL_PATH = "./";
+            const MODEL_PATH = "https://lyra-wasm.shiguredo.app/2022.2.0/";
             lyraModule = await Shiguredo.LyraModule.load(WASM_PATH, MODEL_PATH);
           }
 
@@ -110,19 +110,20 @@
         });
       }
 
-      function playProcessedAudio() {
+      async function playProcessedAudio() {
         const processedAudioDataList = [];
         const bitrate = Number(document.getElementById('bitrate').value);
         const enableDtx = document.getElementById('dtx').checked;
-        const encoder = lyraModule.createEncoder({sampleRate: 48000, bitrate, enableDtx});
-        const decoder = lyraModule.createDecoder({sampleRate: 48000});
+        const encoder = await lyraModule.createEncoder({sampleRate: 48000, bitrate, enableDtx});
+        const decoder = await lyraModule.createDecoder({sampleRate: 48000});
         const halfFrameSize = encoder.frameSize / 2;
-        const audioData = new Float32Array(encoder.frameSize);
-        const audioDataInt16 = new Int16Array(encoder.frameSize);
 
         let totalEncodedSize = 0;
         let startTime = performance.now();
         for (let i = 0; i < originalAudioDataList.length; i += 2) {
+          const audioData = new Float32Array(encoder.frameSize);
+          const audioDataInt16 = new Int16Array(encoder.frameSize);
+
           if (originalAudioDataList.length == i + 1) {
             break;
           }
@@ -133,11 +134,11 @@
             audioDataInt16[i] = v * 0x7FFF;
           }
 
-          const encoded = encoder.encode(audioDataInt16);
+          const encoded = await encoder.encode(audioDataInt16);
           if (encoded !== undefined) {
             totalEncodedSize += encoded.length;
           }
-          const processedDataInt16 = decoder.decode(encoded);
+          const processedDataInt16 = await decoder.decode(encoded);
           const processedData = new Float32Array(processedDataInt16.length);
           for (let [i, v] of processedDataInt16.entries()) {
             processedData[i] = v / 0x7FFF;

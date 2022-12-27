@@ -24,9 +24,6 @@ self.addEventListener('fetch', (e) => {
       headers.set("Cross-Origin-Embedder-Policy", "require-corp");
       headers.set("Cross-Origin-Opener-Policy", "same-origin");
 
-      // Chrome でローカルの http で実行する場合に必要
-      headers.set("Content-Security-Policy", "treat-as-public-address");
-
       return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,

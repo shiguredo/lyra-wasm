@@ -10,6 +10,18 @@
     - バグ修正
 
 ## develop
+- [CHANGE] エンコードおよびデコードを web worker で行うようにする
+  - 以下のメソッドが非同期になった:
+    - `LyraModule.createEncoder()`
+    - `LyraModule.createDecoder()`
+    - `LyraEncoder.encode()`
+    - `LyraDecoder.decode()`
+  - 以下のメソッドが廃止された:
+    - `LyraEncoder.setBitrate()`
+  - 以下の readonly プロパティが追加された:
+    - `LyraEncoder.port` (`MessagePort` 型)
+    - `LyraDecoder.port` (`MessagePort` 型)
+  - @sile
 - [CHANGE] emscripten のビルドオプションから `ALLOW_MEMORY_GROWTH` を外して `INITIAL_MEMORY=64MB` を追加
   - モバイル Safari では `ALLOW_MEMORY_GROWTH` オプション付きでビルドされた wasm ファイルはエラーになるため
   - @sile

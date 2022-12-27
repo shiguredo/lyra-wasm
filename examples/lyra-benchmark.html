@@ -39,12 +39,19 @@
           console.log("Starts benchmark.");
           const MODEL_URL = "https://lyra-wasm.shiguredo.app/2022.2.0/";
 
+          // TODO(sile): 後で各バージョンでのベンチマークを復活させる
+          // const WASM_URL_MAP = {
+          //   "1.3.1": "https://lyra-wasm.shiguredo.app/2022.2.0/",
+          //   "1.3.2": "https://lyra-wasm.shiguredo.app/2022.3.0-canary.0/",
+          // };
+          // const EMSDK_VERSIONS = {
+          //   "1.3.1": "3.1.27",
+          //   "1.3.2": "3.1.28",
+          // };
           const WASM_URL_MAP = {
-            "1.3.1": "https://lyra-wasm.shiguredo.app/2022.2.0/",
-            "1.3.2": "https://lyra-wasm.shiguredo.app/2022.3.0-canary.0/",
+            "1.3.2": "./",
           };
           const EMSDK_VERSIONS = {
-            "1.3.1": "3.1.27",
             "1.3.2": "3.1.28",
           };
 
@@ -52,8 +59,8 @@
           const decoders = {};
           for (const [version, wasmUrl] of Object.entries(WASM_URL_MAP)) {
               const lyraModule = await Shiguredo.LyraModule.load(wasmUrl, MODEL_URL);
-              encoders[version] = lyraModule.createEncoder();
-              decoders[version] = lyraModule.createDecoder();
+              encoders[version] = await lyraModule.createEncoder();
+              decoders[version] = await lyraModule.createDecoder();
           }
           console.log("Created Lyra encoders and decoders.");
 
@@ -71,14 +78,14 @@
               let now = performance.now();
               let encodedAudioDataList = [];
               for (const audioData of audioDataList) {
-                  encodedAudioDataList.push(encoders[version].encode(audioData));
+                  encodedAudioDataList.push(await encoders[version].encode(audioData.slice()));
               }
               console.log(`[${version}] Encode Time: ${performance.now() - now} ms`);
               result += `- Encode Time: ${performance.now() - now} ms<br />`;
 
               now = performance.now();
               for (const encodedAudioData of encodedAudioDataList) {
-                  decoders[version].decode(encodedAudioData);
+                  await decoders[version].decode(encodedAudioData);
               }
               console.log(`[${version}] Decode Time: ${performance.now() - now} ms`);
               result += `- Decode Time: ${performance.now() - now} ms<br />`;
