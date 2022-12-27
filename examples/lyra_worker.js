@@ -1,1 +1,0 @@
-../dist/lyra_worker.js
