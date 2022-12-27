@@ -126,7 +126,7 @@
 
           if (originalAudioDataList.length == i + 1) {
             break;
-                            }
+          }
           originalAudioDataList[i].copyTo(audioData.subarray(0, halfFrameSize), { planeIndex: 0 });
           originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
 
