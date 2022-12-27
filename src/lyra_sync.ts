@@ -18,9 +18,6 @@ import {
 const MEMFS_MODEL_PATH = "/tmp/";
 const FRAME_DURATION_MS = 20;
 
-/**
- * Lyra 用の WebAssembly ファイルやモデルファイルを管理するためのクラス
- */
 class LyraSyncModule {
   private wasmModule: lyra_wasm.LyraWasmModule;
 
@@ -28,13 +25,6 @@ class LyraSyncModule {
     this.wasmModule = wasmModule;
   }
 
-  /**
-   * Lyra の WebAssembly ファイルやモデルファイルをロードして {@link LyraSyncModule} のインスタンスを生成する
-   *
-   * @param wasmPath lyra.wasm および lyra.worker.js が配置されているディレクトリのパスないし URL
-   * @param modelPath Lyra 用の *.binarypb および *.tflite が配置されているディレクトリのパスないし URL
-   * @returns 生成された {@link LyraSyncModule} インスタンス
-   */
   static async load(wasmPath: string, modelPath: string): Promise<LyraSyncModule> {
     const wasmModule = await loadLyraWasmModule({
       locateFile: (path) => {
@@ -54,14 +44,6 @@ class LyraSyncModule {
     return new LyraSyncModule(wasmModule);
   }
 
-  /**
-   * {@link LyraSyncEncoder} のインスタンスを生成する
-   *
-   * 生成したインスタンスが不要になったら {@link LyraSyncEncoder.destroy} メソッドを呼び出してリソースを解放すること
-   *
-   * @params options エンコーダに指定するオプション
-   * @returns 生成された {@link LyraSyncEncoder} インスタンス
-   */
   createEncoder(options: LyraEncoderOptions = {}): LyraSyncEncoder {
     checkSampleRate(options.sampleRate);
     checkNumberOfChannels(options.numberOfChannels);
@@ -83,14 +65,6 @@ class LyraSyncModule {
     }
   }
 
-  /**
-   * {@link LyraSyncDecoder} のインスタンスを生成する
-   *
-   * 生成したインスタンスが不要になったら {@link LyraSyncDecoder.destroy} メソッドを呼び出してリソースを解放すること
-   *
-   * @params options デコーダに指定するオプション
-   * @returns 生成された {@link LyraSyncDecoder} インスタンス
-   */
   createDecoder(options: LyraDecoderOptions = {}): LyraSyncDecoder {
     checkSampleRate(options.sampleRate);
     checkNumberOfChannels(options.numberOfChannels);
@@ -109,42 +83,16 @@ class LyraSyncModule {
   }
 }
 
-/**
- * Lyra のエンコーダ
- */
 class LyraSyncEncoder {
   private wasmModule: lyra_wasm.LyraWasmModule;
   private encoder: lyra_wasm.LyraWasmEncoder;
   private buffer: lyra_wasm.AudioData;
-
-  /**
-   * 現在のサンププリングレート
-   */
   readonly sampleRate: number;
-
-  /**
-   * 現在のチャネル数
-   */
   readonly numberOfChannels: number;
-
-  /**
-   * 現在のエンコードビットレート
-   */
   readonly bitrate: number;
-
-  /**
-   * DTX が有効になっているかどうか
-   */
   readonly enableDtx: boolean;
-
-  /**
-   * 一つのフレーム（{@link LyraSyncEncoder.encode} メソッドに渡す音声データ）に含めるサンプル数
-   */
   readonly frameSize: number;
 
-  /**
-   * @internal
-   */
   constructor(
     wasmModule: lyra_wasm.LyraWasmModule,
     encoder: lyra_wasm.LyraWasmEncoder,
@@ -162,18 +110,6 @@ class LyraSyncEncoder {
     this.frameSize = buffer.size();
   }
 
-  /**
-   * 20ms 分の音声データをエンコードする
-   *
-   * @params audioData エンコード対象の音声データ
-   * @returns エンコード後のバイト列。もし DTX が有効で音声データが無音な場合には undefined が代わりに返される。
-   *
-   * @throws
-   *
-   * 以下のいずれかに該当する場合には例外が送出される:
-   * - 入力音声データが 20ms 単位（サンプル数としては {@link LyraSyncEncoder.frameSize}）ではない
-   * - その他、何らかの理由でエンコードに失敗した場合
-   */
   encode(audioData: Int16Array): Uint8Array | undefined {
     if (audioData.length !== this.frameSize) {
       throw new Error(
@@ -205,11 +141,6 @@ class LyraSyncEncoder {
     }
   }
 
-  /**
-   * エンコードビットレートを変更する
-   *
-   * @params bitrate 変更後のビットレート
-   */
   setBitrate(bitrate: number): void {
     checkBitrate(bitrate);
 
@@ -218,41 +149,20 @@ class LyraSyncEncoder {
     }
   }
 
-  /**
-   * エンコーダ用に確保したリソースを解放する
-   */
   destroy(): void {
     this.encoder.delete();
     this.buffer.delete();
   }
 }
 
-/**
- * Lyra のデコーダ
- */
 class LyraSyncDecoder {
   private wasmModule: lyra_wasm.LyraWasmModule;
   private decoder: lyra_wasm.LyraWasmDecoder;
   private buffer: lyra_wasm.Bytes;
-
-  /**
-   * 現在のサンププリングレート
-   */
   readonly sampleRate: number;
-
-  /**
-   * 現在のチャネル数
-   */
   readonly numberOfChannels: number;
-
-  /**
-   * 一つのフレーム（{@link LyraSyncEncoder.decode} メソッドの返り値の音声データ）に含まれるサンプル数
-   */
   readonly frameSize: number;
 
-  /**
-   * @internal
-   */
   constructor(
     wasmModule: lyra_wasm.LyraWasmModule,
     decoder: lyra_wasm.LyraWasmDecoder,
@@ -269,12 +179,6 @@ class LyraSyncDecoder {
     this.frameSize = (this.sampleRate * FRAME_DURATION_MS) / 1000;
   }
 
-  /**
-   * {@link LyraSyncEncoder.encode} メソッドによってエンコードされた音声データをデコードする
-   *
-   * @params encodedAudioData デコード対象のバイナリ列ないし undefined
-   * @returns デコードされた 20ms 分の音声データ。undefined が渡された場合には代わりにコンフォートノイズが生成される。
-   */
   decode(encodedAudioData: Uint8Array | undefined): Int16Array {
     if (encodedAudioData !== undefined) {
       this.buffer.resize(0, 0); // clear() を使うと「関数が存在しない」というエラーが出るので resize() で代用
@@ -300,9 +204,6 @@ class LyraSyncDecoder {
     }
   }
 
-  /**
-   * デコーダ用に確保したリソースを解放する
-   */
   destroy(): void {
     this.decoder.delete();
     this.buffer.delete();
