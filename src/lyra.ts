@@ -171,7 +171,7 @@ class LyraEncoder {
   readonly enableDtx: boolean;
 
   /**
-   * 一つのフレーム（{@link LyraSyncEncoder.encode} メソッドに渡す音声データ）に含めるサンプル数
+   * 一つのフレーム（{@link LyraEncoder.encode} メソッドに渡す音声データ）に含めるサンプル数
    */
   readonly frameSize: number;
 
@@ -258,7 +258,7 @@ class LyraDecoder {
   readonly numberOfChannels: number;
 
   /**
-   * 一つのフレーム（{@link LyraSyncEncoder.decode} メソッドの返り値の音声データ）に含まれるサンプル数
+   * 一つのフレーム（{@link LyraEncoder.decode} メソッドの返り値の音声データ）に含まれるサンプル数
    */
   readonly frameSize: number;
 
@@ -273,7 +273,7 @@ class LyraDecoder {
   }
 
   /**
-   * {@link LyraSyncEncoder.encode} メソッドによってエンコードされた音声データをデコードする
+   * {@link LyraEncoder.encode} メソッドによってエンコードされた音声データをデコードする
    *
    * なお encodedAudioData の所有権は web worker に移転されるので、
    * このメソッド呼び出し後には呼び出しもとスレッドからはデータに参照できなくなります
