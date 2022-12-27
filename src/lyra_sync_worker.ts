@@ -19,9 +19,7 @@ function decoderPoolKey(options: LyraDecoderOptions): string {
   return `${sampleRate}:${numberOfChannels}`;
 }
 
-async function loadLyraModule(modelPath: string): Promise<void> {
-  // モデルファイルは web worker ファイルと同じディレクトリに配置されている
-  const wasmPath = "./";
+async function loadLyraModule(wasmPath: string, modelPath: string): Promise<void> {
   LYRA_MODULE = await LyraSyncModule.load(wasmPath, modelPath);
 }
 
@@ -64,7 +62,7 @@ function createLyraDecoder(options: LyraDecoderOptions): LyraSyncDecoder {
 type ModuleMessage = { data: ModuleMessageData };
 
 type ModuleMessageData =
-  | { type: "LyraModule.load"; modelPath: string }
+  | { type: "LyraModule.load"; modelPath: string; wasmPath: string }
   | { type: "LyraModule.createEncoder"; options: LyraEncoderOptions; port: MessagePort }
   | { type: "LyraModule.createDecoder"; options: LyraDecoderOptions; port: MessagePort };
 
@@ -72,7 +70,7 @@ self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
   switch (msg.data.type) {
     case "LyraModule.load":
       try {
-        await loadLyraModule(msg.data.modelPath);
+        await loadLyraModule(msg.data.wasmPath, msg.data.modelPath);
         self.postMessage({ type: `${msg.data.type}.result`, result: {} });
       } catch (error) {
         self.postMessage({ type: `${msg.data.type}.result`, result: { error } });

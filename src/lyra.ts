@@ -6,8 +6,9 @@ import {
   DEFAULT_CHANNELS,
   LyraDecoderOptions,
   LyraEncoderOptions,
-  trimLastSlash,
 } from "./utils";
+
+const WEB_WORKER_SCRIPT = "__WEB_WORKER_SCRIPT__";
 
 /**
  * Lyra 用の WebAssembly ファイルやモデルファイルのロードや web worker の管理を行うためのクラス
@@ -27,10 +28,19 @@ class LyraModule {
    * @returns 生成された {@link LyraModule} インスタンス
    */
   static load(wasmPath: string, modelPath: string): Promise<LyraModule> {
-    const worker = new Worker(trimLastSlash(wasmPath) + "/lyra_sync_worker.js", { name: "lyra_sync_worker" });
+    // lyra は SharedArrayBufffer を使うので COEP / COOP 応答ヘッダ周りの対処が必要になるが、
+    // chrome / firefox と safari で挙動が異なる（前者は COEP / COOP ヘッダが必要で、後者はそれがあるとエラーになる）ので
+    // その問題を回避するために object url で worker を生成するようにする
+    const webWorkerScriptObjectUrl = URL.createObjectURL(
+      new Blob([atob(WEB_WORKER_SCRIPT)], { type: "application/javascript" })
+    );
+    const worker = new Worker(webWorkerScriptObjectUrl, {
+      name: "lyra_sync_worker",
+    });
 
-    // モデルは web worker の中でロードされることになるので、
-    // modelPath を事前に絶対 URL に変換して曖昧性がなくなるようにしておく
+    // 各種ファイルは web worker の中でロードされることになるので、
+    // 事前に絶対 URL に変換しておく必要がある
+    wasmPath = new URL(wasmPath, document.location.href).toString();
     modelPath = new URL(modelPath, document.location.href).toString();
 
     const promise: Promise<LyraModule> = new Promise((resolve, reject) => {
@@ -49,7 +59,7 @@ class LyraModule {
       );
     });
 
-    worker.postMessage({ type: "LyraModule.load", modelPath });
+    worker.postMessage({ type: "LyraModule.load", modelPath, wasmPath });
     return promise;
   }
 
