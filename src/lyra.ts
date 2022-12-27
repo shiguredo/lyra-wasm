@@ -27,10 +27,7 @@ class LyraModule {
    * @returns 生成された {@link LyraModule} インスタンス
    */
   static load(wasmPath: string, modelPath: string): Promise<LyraModule> {
-    const worker = new Worker(trimLastSlash(wasmPath) + "/lyra_sync_worker.js", {
-      type: "module",
-      name: "lyra_sync_worker",
-    });
+    const worker = new Worker(trimLastSlash(wasmPath) + "/lyra_sync_worker.js", { name: "lyra_sync_worker" });
 
     // モデルは web worker の中でロードされることになるので、
     // modelPath を事前に絶対 URL に変換して曖昧性がなくなるようにしておく
