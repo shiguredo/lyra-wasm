@@ -26,7 +26,6 @@ export default [
       sourcemap: false,
       format: 'umd',
       file: './dist/lyra_sync_worker.js',
-      banner: banner,
     }
   },
   {
