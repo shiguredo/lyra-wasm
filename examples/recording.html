@@ -76,7 +76,7 @@
           // モデルをロード
           if (lyraModule === undefined) {
             const WASM_PATH = "./";
-            const MODEL_PATH = "./";
+            const MODEL_PATH = "https://lyra-wasm.shiguredo.app/2022.2.0/";
             lyraModule = await Shiguredo.LyraModule.load(WASM_PATH, MODEL_PATH);
           }
 
