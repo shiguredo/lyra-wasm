@@ -7,7 +7,7 @@ self.addEventListener('fetch', (e) => {
   const isTarget =
         e.request.url.startsWith('http') &&
         (e.request.url.includes('recording') ||
-         e.request.url.includes('lyra-benchmark')) ;
+         e.request.url.includes('lyra-benchmark'));
   if(!isTarget) {
     e.respondWith(fetch(e.request));
     return;
