@@ -30,16 +30,28 @@ class LyraSyncModule {
       locateFile: (path) => {
         return trimLastSlash(wasmPath) + "/" + path;
       },
-      preRun: (wasmModule) => {
-        const fileNames = ["lyra_config.binarypb", "soundstream_encoder.tflite", "quantizer.tflite", "lyragan.tflite"];
-        for (const fileName of fileNames) {
-          const url = trimLastSlash(modelPath) + "/" + fileName;
-
-          // FIXME(sile): url からのダウンロードに失敗しても catch ができないので fetch で置き換える
-          wasmModule.FS_createPreloadedFile(MEMFS_MODEL_PATH, fileName, url, true, false);
-        }
-      },
     });
+
+    const modelFileNames = ["lyra_config.binarypb", "soundstream_encoder.tflite", "quantizer.tflite", "lyragan.tflite"];
+    await Promise.all(
+      modelFileNames.map((name) => {
+        const url = trimLastSlash(modelPath) + "/" + name;
+        return fetch(url).then(async (res) => {
+          if (!res.ok) {
+            throw new Error(`failed to fetch ${url}: ${res.status} ${res.statusText}`);
+          }
+
+          wasmModule.FS_createDataFile(
+            MEMFS_MODEL_PATH,
+            name,
+            new Uint8Array(await res.arrayBuffer()),
+            true,
+            false,
+            false
+          );
+        });
+      })
+    );
 
     return new LyraSyncModule(wasmModule);
   }

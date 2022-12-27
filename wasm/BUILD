@@ -10,11 +10,11 @@ cc_binary(
     ],
     linkopts = [
       "--bind",
-      "--use-preload-plugins",
       "-s INITIAL_MEMORY=64MB",
       "-s EXPORT_ES6=1",
       "-s MODULARIZE=1",
       "-s EXPORT_NAME=LyraWasmModule",
+      "-s FORCE_FILESYSTEM",
 
       # [FIXME]
       # "undefined symbol: _Unwind_GetIP (referenced by top-level compiled C/C++ code)" エラーを抑制するためのオプション

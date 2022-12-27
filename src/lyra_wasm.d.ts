@@ -31,7 +31,14 @@ export interface LyraWasmModule extends EmscriptenModule {
   newAudioData(numberOfSamples: number): AudioData;
   copyAudioDataToInt16Array(to: Int16Array, from: AudioData): void;
   copyInt16ArrayToAudioData(to: AudioData, from: Int16Array): void;
-  FS_createPreloadedFile(parent: string, name: string, url: string, canRead: boolean, canWrite: boolean): void;
+  FS_createDataFile(
+    parent: string,
+    name: string,
+    data: Uint8Array,
+    canRead: boolean,
+    canWrite: boolean,
+    canOwn: boolean
+  ): any;
 }
 
 export interface LoadLyraWasmModuleOptions {
