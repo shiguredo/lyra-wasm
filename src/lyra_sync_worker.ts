@@ -52,8 +52,20 @@ class ResourceManager {
   }
 
   remove(port: MessagePort): void {
-    this.encoders.delete(port);
-    this.decoders.delete(port);
+    {
+      const resource = this.encoders.get(port);
+      if (resource !== undefined) {
+        resource.item.destroy();
+        this.encoders.delete(port);
+      }
+    }
+    {
+      const resource = this.decoders.get(port);
+      if (resource !== undefined) {
+        resource.item.destroy();
+        this.decoders.delete(port);
+      }
+    }
   }
 
   evictIfNeed(): void {
