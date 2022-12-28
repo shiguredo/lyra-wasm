@@ -152,6 +152,32 @@ class LyraModule {
 }
 
 /**
+ * {@link LyraEncoder} の復元に必要な状態
+ *
+ * 詳細は {@link LyraEncoder.fromState()} を参照
+ */
+interface LyraEncoderState {
+  port: MessagePort;
+  sampleRate: SampleRate;
+  numberOfChannels: NumberOfChannels;
+  bitrate: Bitrate;
+  enableDtx: boolean;
+  frameSize: number;
+}
+
+/**
+ * {@link LyraDecoder} の復元に必要な状態
+ *
+ * 詳細は {@link LyraDecoder.fromState()} を参照
+ */
+interface LyraDecoderState {
+  port: MessagePort;
+  sampleRate: SampleRate;
+  numberOfChannels: NumberOfChannels;
+  frameSize: number;
+}
+
+/**
  * Lyra のエンコーダ
  */
 class LyraEncoder {
@@ -246,6 +272,23 @@ class LyraEncoder {
     this.port.postMessage({ type: "LyraEncoder.destroy" });
     this.port.close();
   }
+
+  /**
+   * {@link LyraEncoderState} から {@link LyraEncoder} を復元する
+   *
+   * {@link LyraEncoder} は {@link MessagePort.postMessage()} を使って、
+   * 別の web worker に転送することが可能。
+   * ただし、転送時にはクラスやメソッドの状態は落ちてしまうので、
+   * それを復元して再び利用可能にするための関数。
+   * なお、転送の際には {@link LyraEncoder.port} の所有権を移譲する必要がある。
+   *
+   * @param state エンコーダの状態
+   * @return 復元されたエンコーダ
+   */
+  static fromState(state: LyraEncoderState): LyraEncoder {
+    state.port.start();
+    return new LyraEncoder(state.port, state.frameSize, state);
+  }
 }
 
 /**
@@ -329,6 +372,23 @@ class LyraDecoder {
     this.port.postMessage({ type: "LyraDecoder.destroy" });
     this.port.close();
   }
+
+  /**
+   * {@link LyraDecoderState} から {@link LyraDecoder} を復元する
+   *
+   * {@link LyraDecoder} は {@link MessagePort.postMessage()} を使って、
+   * 別の web worker に転送することが可能。
+   * ただし、転送時にはクラスやメソッドの状態は落ちてしまうので、
+   * それを復元して再び利用可能にするための関数。
+   * なお、転送の際には {@link LyraDecoder.port} の所有権を移譲する必要がある。
+   *
+   * @param state デコーダの状態
+   * @return 復元されたデコーダ
+   */
+  static fromState(state: LyraDecoderState): LyraDecoder {
+    state.port.start();
+    return new LyraDecoder(state.port, state.frameSize, state);
+  }
 }
 
 export {
@@ -338,6 +398,8 @@ export {
   LyraModule,
   LyraEncoder,
   LyraDecoder,
+  LyraEncoderState,
+  LyraDecoderState,
   SampleRate,
   NumberOfChannels,
   Bitrate,

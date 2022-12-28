@@ -10,6 +10,10 @@
     - バグ修正
 
 ## develop
+- [UPDATE] LyraEncoder および LyraDecoder を web worker に転送するために必要なクラスと関数を追加
+  - @sile
+- [UPDATE] SampleRate, NumberOfChannels, Bitrate 型を定義
+  - @sile
 - [CHANGE] エンコードおよびデコードを web worker で行うようにする
   - 以下のメソッドが非同期になった:
     - `LyraModule.createEncoder()`
