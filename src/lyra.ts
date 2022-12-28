@@ -6,6 +6,9 @@ import {
   DEFAULT_CHANNELS,
   LyraDecoderOptions,
   LyraEncoderOptions,
+  SampleRate,
+  NumberOfChannels,
+  Bitrate,
 } from "./utils";
 
 const WEB_WORKER_SCRIPT = "__WEB_WORKER_SCRIPT__";
@@ -160,17 +163,17 @@ class LyraEncoder {
   /**
    * 現在のサンププリングレート
    */
-  readonly sampleRate: number;
+  readonly sampleRate: SampleRate;
 
   /**
    * 現在のチャネル数
    */
-  readonly numberOfChannels: number;
+  readonly numberOfChannels: NumberOfChannels;
 
   /**
    * 現在のエンコードビットレート
    */
-  readonly bitrate: number;
+  readonly bitrate: Bitrate;
 
   /**
    * DTX が有効になっているかどうか
@@ -232,7 +235,7 @@ class LyraEncoder {
       );
     });
 
-    this.port.postMessage({ type: "LyraEncoder.encode", audioData, bitrate: this.bitrate }, [audioData.buffer]);
+    this.port.postMessage({ type: "LyraEncoder.encode", audioData }, [audioData.buffer]);
     return promise;
   }
 
@@ -257,12 +260,12 @@ class LyraDecoder {
   /**
    * 現在のサンププリングレート
    */
-  readonly sampleRate: number;
+  readonly sampleRate: SampleRate;
 
   /**
    * 現在のチャネル数
    */
-  readonly numberOfChannels: number;
+  readonly numberOfChannels: NumberOfChannels;
 
   /**
    * 一つのフレーム（{@link LyraEncoder.decode} メソッドの返り値の音声データ）に含まれるサンプル数
@@ -328,4 +331,14 @@ class LyraDecoder {
   }
 }
 
-export { LYRA_VERSION, LyraDecoderOptions, LyraEncoderOptions, LyraModule, LyraEncoder, LyraDecoder };
+export {
+  LYRA_VERSION,
+  LyraDecoderOptions,
+  LyraEncoderOptions,
+  LyraModule,
+  LyraEncoder,
+  LyraDecoder,
+  SampleRate,
+  NumberOfChannels,
+  Bitrate,
+};

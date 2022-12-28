@@ -171,9 +171,7 @@ self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
 
 type EncoderMessage = { data: EncoderMessageData };
 
-type EncoderMessageData =
-  | { type: "LyraEncoder.encode"; audioData: Int16Array; bitrate: 3200 | 6000 | 9200 }
-  | { type: "LyraEncoder.destroy" };
+type EncoderMessageData = { type: "LyraEncoder.encode"; audioData: Int16Array } | { type: "LyraEncoder.destroy" };
 
 function handleEncoderMessage(
   manager: ResourceManager,

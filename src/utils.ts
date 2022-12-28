@@ -11,6 +11,21 @@ const DEFAULT_ENABLE_DTX = false;
 const DEFAULT_CHANNELS = 1;
 
 /**
+ * 音声データのサンプルレート
+ */
+type SampleRate = 8000 | 16000 | 32000 | 48000;
+
+/**
+ * 音声データのチャネル数
+ */
+type NumberOfChannels = 1;
+
+/**
+ * 音声データのエンコードビットレート
+ */
+type Bitrate = 3200 | 6000 | 9200;
+
+/**
  * {@link LyraModule.createEncoder} メソッドに指定可能なオプション
  */
 interface LyraEncoderOptions {
@@ -21,21 +36,21 @@ interface LyraEncoderOptions {
    *
    * デフォルト値: 16000
    */
-  sampleRate?: 8000 | 16000 | 32000 | 48000;
+  sampleRate?: SampleRate;
 
   /**
    * 入力音声データのチャンネル数
    *
    * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: 1;
+  numberOfChannels?: NumberOfChannels;
 
   /**
    * エンコード後の音声データのビットレート
    *
    * デフォルト値: 9200
    */
-  bitrate?: 3200 | 6000 | 9200;
+  bitrate?: Bitrate;
 
   /**
    * DTX（discontinuous transmission）を有効にするかどうか
@@ -54,14 +69,14 @@ interface LyraDecoderOptions {
    *
    * デフォルト値: 16000
    */
-  sampleRate?: 8000 | 16000 | 32000 | 48000;
+  sampleRate?: SampleRate;
 
   /**
    * 入力音声データのチャンネル数
    *
    * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: 1;
+  numberOfChannels?: NumberOfChannels;
 }
 
 function trimLastSlash(s: string): string {
@@ -115,4 +130,7 @@ export {
   checkSampleRate,
   checkNumberOfChannels,
   checkBitrate,
+  SampleRate,
+  NumberOfChannels,
+  Bitrate,
 };
