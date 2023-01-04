@@ -11,6 +11,13 @@
 
 ## develop
 - [UPDATE] LyraEncoder および LyraDecoder を web worker に転送するために必要なクラスと関数を追加
+  - 以下のインターフェースが追加された:
+    - `LyraEncoderState`
+    - `LyraDecoderState`
+  - 以下のメソッドが追加された:
+    - `LyraEncoder.fromState()`
+    - `LyraDecoder.fromState()`
+  - これらは `LyraEncoder` および `LyraDecoder` を `postMessage()` を使って web worker に転送するとメソッド情報が捨てられ `LyraEncoderState` および `LyraDecoderState` が得られるが、それらに対して `fromState()` を呼び出すことで、元のインスタンスが復元できる
   - @sile
 - [UPDATE] SampleRate, NumberOfChannels, Bitrate 型を定義
   - @sile
