@@ -127,6 +127,9 @@
           if (originalAudioDataList.length == i + 1) {
             break;
           }
+
+          // NOTE: ここは originalAudioDataList の各要素の長さが 10ms であることを仮定している
+          //       Android / iOS では別の長さ（e.g., Android なら 40ms ）になるようなので要修正
           originalAudioDataList[i].copyTo(audioData.subarray(0, halfFrameSize), { planeIndex: 0 });
           originalAudioDataList[i + 1].copyTo(audioData.subarray(halfFrameSize), { planeIndex: 0 });
 
@@ -164,6 +167,7 @@
       }
 
       function playOriginalAudio() {
+        // NOTE: Android / iOS ではなぜか音声が再生されない（要調査）
         playAudio(originalAudioDataList);
       }
 
