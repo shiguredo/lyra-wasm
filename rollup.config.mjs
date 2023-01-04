@@ -1,7 +1,10 @@
+import fs from "fs";
 import typescript from '@rollup/plugin-typescript';
-import pkg from './package.json';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
+import del from "rollup-plugin-delete";
+import pkg from './package.json';
 
 const banner = `/**
  * ${pkg.name}
@@ -14,8 +17,25 @@ const banner = `/**
 
 export default [
   {
+    input: 'src/lyra_sync_worker.ts',
+    plugins: [
+      typescript({module: "esnext"}),
+      commonjs(),
+      resolve()
+    ],
+    output: {
+      sourcemap: false,
+      format: 'umd',
+      file: 'tmp/lyra_sync_worker.js',
+    }
+  },
+  {
     input: 'src/lyra.ts',
     plugins: [
+      replace({
+        __WEB_WORKER_SCRIPT__: () => fs.readFileSync("tmp/lyra_sync_worker.js", "base64"),
+        preventAssignment: true
+      }),
       typescript({module: "esnext"}),
       commonjs(),
       resolve(),
@@ -32,9 +52,17 @@ export default [
   {
     input: 'src/lyra.ts',
     plugins: [
+      replace({
+        __WEB_WORKER_SCRIPT__: () => fs.readFileSync("tmp/lyra_sync_worker.js", "base64"),
+        preventAssignment: true
+      }),
       typescript({module: "esnext"}),
       commonjs(),
-      resolve()
+      resolve(),
+      del({
+        targets: 'tmp/',
+        hook: 'buildEnd'
+      })
     ],
     output: {
       sourcemap: false,

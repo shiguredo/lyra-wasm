@@ -35,15 +35,15 @@ const modelPath = "./";
 const lyraModule = await LyraModule.load(wasmPath, modelPath);
 
 // エンコーダを生成
-const lyraEncoder = lyraModule.createEncoder({bitrate: 6000});
+const lyraEncoder = await lyraModule.createEncoder({bitrate: 6000});
 
 // デコーダを生成
-const lyraDecoder = lyraModule.createDecoder();
+const lyraDecoder = await lyraModule.createDecoder();
 
 // エンコードおよびデコード
 const audioData = new Float32Array(lyraEncoder.frameSize); // 無音の音声データを 1 フレーム分生成
-const encoded = lyraEncoder.encode(audioData);
-const decoded = lyraDecoder.decode(encoded);
+const encoded = await lyraEncoder.encode(audioData);
+const decoded = await lyraDecoder.decode(encoded);
 ```
 
 ### ブラウザから利用する場合
@@ -55,8 +55,8 @@ const decoded = lyraDecoder.decode(encoded);
 [リリースページ](https://github.com/shiguredo/lyra-wasm/releases)からビルド済みの lyra.wasm および lyra.worker.js ファイルが取得できます。
 
 ```console
-$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2022.2.0/lyra.wasm
-$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2022.2.0/lyra.worker.js
+$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2023.1.0/lyra.wasm
+$ curl -OL https://github.com/shiguredo/lyra-wasm/releases/download/2023.1.0/lyra.worker.js
 ```
 
 自前でビルドする場合には、以下のコマンドを実行してください。

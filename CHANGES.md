@@ -11,6 +11,37 @@
 
 ## develop
 
+## 2023.1.0
+
+- [UPDATE] LyraEncoder および LyraDecoder を web worker に転送するために必要なクラスと関数を追加
+  - 以下のインターフェースが追加された:
+    - `LyraEncoderState`
+    - `LyraDecoderState`
+  - 以下のメソッドが追加された:
+    - `LyraEncoder.fromState()`
+    - `LyraDecoder.fromState()`
+  - これらは `LyraEncoder` および `LyraDecoder` を `postMessage()` を使って web worker に転送するとメソッド情報が捨てられ `LyraEncoderState` および `LyraDecoderState` が得られるが、それらに対して `fromState()` を呼び出すことで、元のインスタンスが復元できる
+  - @sile
+- [UPDATE] SampleRate, NumberOfChannels, Bitrate 型を定義
+  - @sile
+- [CHANGE] エンコードおよびデコードを web worker で行うようにする
+  - 以下のメソッドが非同期になった:
+    - `LyraModule.createEncoder()`
+    - `LyraModule.createDecoder()`
+    - `LyraEncoder.encode()`
+    - `LyraDecoder.decode()`
+  - 以下のメソッドが廃止された:
+    - `LyraEncoder.setBitrate()`
+  - 以下の readonly プロパティが追加された:
+    - `LyraEncoder.port` (`MessagePort` 型)
+    - `LyraDecoder.port` (`MessagePort` 型)
+  - @sile
+- [CHANGE] emscripten のビルドオプションから `ALLOW_MEMORY_GROWTH` を外して `INITIAL_MEMORY=64MB` を追加
+  - モバイル Safari では `ALLOW_MEMORY_GROWTH` オプション付きでビルドされた wasm ファイルはエラーになるため
+  - @sile
+- [UPDATE] google/lyra のバージョンを 1.3.2 に更新
+  - @sile
+
 ## 2022.2.0
 
 - [CHANGE] サンプルレート・チャンネル数・ビットレートの取り得る値を型で明記する
