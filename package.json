@@ -7,7 +7,7 @@
   "types": "dist/lyra.d.ts",
   "type": "module",
   "scripts": {
-    "build": "./build-wasm.sh && rollup -c ./rollup.config.mjs --bundleConfigAsCjs && tsc --emitDeclarationOnly",
+    "build": "./build-wasm.sh && rollup -c ./rollup.config.mjs --bundleConfigAsCjs",
     "lint": "eslint --ext .ts ./src",
     "fmt": "prettier --write src",
     "start": "npx serve -S -l 8080 ."
