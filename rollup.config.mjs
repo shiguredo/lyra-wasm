@@ -36,7 +36,7 @@ export default [
         __WEB_WORKER_SCRIPT__: () => fs.readFileSync("tmp/lyra_sync_worker.js", "base64"),
         preventAssignment: true
       }),
-      typescript({module: "esnext"}),
+      typescript({module: "esnext", exclude: ["src/lyra_sync*.ts"]}),
       commonjs(),
       resolve(),
     ],
@@ -56,7 +56,7 @@ export default [
         __WEB_WORKER_SCRIPT__: () => fs.readFileSync("tmp/lyra_sync_worker.js", "base64"),
         preventAssignment: true
       }),
-      typescript({module: "esnext"}),
+      typescript({module: "esnext", exclude: ["src/lyra_sync*.ts"]}),
       commonjs(),
       resolve(),
       del({
