@@ -10,6 +10,9 @@
     - バグ修正
 
 ## develop
+
+## 2023.1.0
+
 - [UPDATE] LyraEncoder および LyraDecoder を web worker に転送するために必要なクラスと関数を追加
   - 以下のインターフェースが追加された:
     - `LyraEncoderState`
