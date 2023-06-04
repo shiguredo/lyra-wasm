@@ -114,10 +114,10 @@ git_repository(
 http_archive(
     name = "bazel_skylib",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
     ],
-    sha256 = "b8a1527901774180afc798aeb28c4634bdccf19c4d98e7bdd1ce79d1fe9aaad7",
+    sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
 )
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 bazel_skylib_workspace()
@@ -155,9 +155,9 @@ workspace2()
 ##################
 http_archive(
     name = "emsdk",
-    sha256 = "883de02cb466c5876d62e3ac0f0de3c45bcb4f73d3e1032263a556c34bb63180",
-    strip_prefix = "emsdk-3.1.39/bazel",
-    url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.39.tar.gz",
+    sha256 = "2dd12ddde0d7028114bc90ef032d0ecfb2be907f3a33e345462bd97dbbdc4063",
+    strip_prefix = "emsdk-3.1.40/bazel",
+    url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.40.tar.gz",
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
