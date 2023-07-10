@@ -3,27 +3,27 @@
  *
  * エンコード形式に非互換な変更が入った時点での google/lyra のバージョンが格納されている。
  */
-const LYRA_VERSION = "1.3.0";
+const LYRA_VERSION = '1.3.0'
 
-const DEFAULT_SAMPLE_RATE = 16000;
-const DEFAULT_BITRATE = 9200;
-const DEFAULT_ENABLE_DTX = false;
-const DEFAULT_CHANNELS = 1;
+const DEFAULT_SAMPLE_RATE = 16000
+const DEFAULT_BITRATE = 9200
+const DEFAULT_ENABLE_DTX = false
+const DEFAULT_CHANNELS = 1
 
 /**
  * 音声データのサンプルレート
  */
-type SampleRate = 8000 | 16000 | 32000 | 48000;
+type SampleRate = 8000 | 16000 | 32000 | 48000
 
 /**
  * 音声データのチャネル数
  */
-type NumberOfChannels = 1;
+type NumberOfChannels = 1
 
 /**
  * 音声データのエンコードビットレート
  */
-type Bitrate = 3200 | 6000 | 9200;
+type Bitrate = 3200 | 6000 | 9200
 
 /**
  * {@link LyraModule.createEncoder} メソッドに指定可能なオプション
@@ -36,28 +36,28 @@ interface LyraEncoderOptions {
    *
    * デフォルト値: 16000
    */
-  sampleRate?: SampleRate;
+  sampleRate?: SampleRate
 
   /**
    * 入力音声データのチャンネル数
    *
    * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: NumberOfChannels;
+  numberOfChannels?: NumberOfChannels
 
   /**
    * エンコード後の音声データのビットレート
    *
    * デフォルト値: 9200
    */
-  bitrate?: Bitrate;
+  bitrate?: Bitrate
 
   /**
    * DTX（discontinuous transmission）を有効にするかどうか
    *
    * デフォルト値: false
    */
-  enableDtx?: boolean;
+  enableDtx?: boolean
 }
 
 /**
@@ -69,21 +69,21 @@ interface LyraDecoderOptions {
    *
    * デフォルト値: 16000
    */
-  sampleRate?: SampleRate;
+  sampleRate?: SampleRate
 
   /**
    * 入力音声データのチャンネル数
    *
    * 現在は 1 (モノラル）のみが指定可能
    */
-  numberOfChannels?: NumberOfChannels;
+  numberOfChannels?: NumberOfChannels
 }
 
 function trimLastSlash(s: string): string {
-  if (s.slice(-1) === "/") {
-    return s.slice(0, -1);
+  if (s.slice(-1) === '/') {
+    return s.slice(0, -1)
   }
-  return s;
+  return s
 }
 
 function checkSampleRate(n: number | undefined): void {
@@ -93,18 +93,20 @@ function checkSampleRate(n: number | undefined): void {
     case 16000:
     case 32000:
     case 48000:
-      return;
+      return
   }
-  throw new Error(`unsupported sample rate: expected one of 8000, 16000, 32000 or 48000, but got ${n}`);
+  throw new Error(
+    `unsupported sample rate: expected one of 8000, 16000, 32000 or 48000, but got ${n}`,
+  )
 }
 
 function checkNumberOfChannels(n: number | undefined): void {
   switch (n) {
     case undefined:
     case 1:
-      return;
+      return
   }
-  throw new Error(`unsupported number of channels: expected 1, but got ${n}`);
+  throw new Error(`unsupported number of channels: expected 1, but got ${n}`)
 }
 
 function checkBitrate(n: number | undefined): void {
@@ -113,9 +115,9 @@ function checkBitrate(n: number | undefined): void {
     case 3200:
     case 6000:
     case 9200:
-      return;
+      return
   }
-  throw new Error(`unsupported bitrate: expected one of 3200, 6000 or 9200, but got ${n}`);
+  throw new Error(`unsupported bitrate: expected one of 3200, 6000 or 9200, but got ${n}`)
 }
 
 export {
@@ -133,4 +135,4 @@ export {
   SampleRate,
   NumberOfChannels,
   Bitrate,
-};
+}
