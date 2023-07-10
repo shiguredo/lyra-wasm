@@ -10,7 +10,7 @@
     "build": "./build-wasm.sh && rollup -c ./rollup.config.mjs --bundleConfigAsCjs",
     "lint": "eslint --ext .ts ./src",
     "fmt": "prettier --write src",
-    "start": "npx serve -S -l 8080 ."
+    "start": "serve -S -l 8080 ."
   },
   "repository": {
     "type": "git",
@@ -30,20 +30,20 @@
     "dist"
   ],
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-commonjs": "24.1.0",
+    "@rollup/plugin-node-resolve": "15.1.0",
     "@rollup/plugin-replace": "5.0.2",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/emscripten": "^1.39.6",
-    "@typescript-eslint/eslint-plugin": "^5.44.0",
-    "@typescript-eslint/parser": "^5.44.0",
-    "eslint": "^8.28.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.7.1",
-    "rollup": "^3.3.0",
-    "rollup-plugin-delete": "^2.0.0",
-    "serve": "^14.1.2",
-    "typescript": "^5.0.0"
+    "@rollup/plugin-typescript": "11.1.2",
+    "@types/emscripten": "1.39.6",
+    "@typescript-eslint/eslint-plugin": "5.61.0",
+    "@typescript-eslint/parser": "5.61.0",
+    "eslint": "8.44.0",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-plugin-prettier": "4.2.1",
+    "prettier": "2.8.8",
+    "rollup": "3.26.2",
+    "rollup-plugin-delete": "2.0.0",
+    "serve": "14.2.0",
+    "typescript": "5.1.6"
   }
 }

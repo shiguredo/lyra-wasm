@@ -15,16 +15,18 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: npm
-      - run: npm install
-      - run: npm run build
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm run build
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           files: |
-             wasm/bazel-bin/lyra-wasm/lyra.wasm
-             wasm/bazel-bin/lyra-wasm/lyra.worker.js
+            wasm/bazel-bin/lyra-wasm/lyra.wasm
+            wasm/bazel-bin/lyra-wasm/lyra.worker.js
 
   notification:
     name: Slack Notification
