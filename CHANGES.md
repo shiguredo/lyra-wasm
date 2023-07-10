@@ -1,15 +1,23 @@
 # 変更履歴
 
 - UPDATE
-    - 下位互換がある変更
+  - 下位互換がある変更
 - ADD
-    - 下位互換がある追加
+  - 下位互換がある追加
 - CHANGE
-    - 下位互換のない変更
+  - 下位互換のない変更
 - FIX
-    - バグ修正
+  - バグ修正
 
 ## develop
+
+- [ADD] CI に nodejs 20 を追加
+  - @voluntas
+- [CHANGE] .prettierrc.json の設定を統一仕様に合わせる
+  - @voluntas
+- [CHANGE] pnpm 化
+  - CI に pnpm actions 追加
+  - @voluntas
 
 ## 2023.1.0
 
