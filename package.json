@@ -34,7 +34,7 @@
     "@rollup/plugin-node-resolve": "15.1.0",
     "@rollup/plugin-replace": "5.0.2",
     "@rollup/plugin-typescript": "11.1.2",
-    "@types/emscripten": "1.39.6",
+    "@types/emscripten": "1.39.7",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
     "eslint": "8.45.0",
@@ -46,7 +46,7 @@
     "serve": "14.2.0",
     "typescript": "5.1.6"
   },
-  "packageManager": "pnpm@8.6.9",
+  "packageManager": "pnpm@8.6.11",
   "engines": {
     "node": ">=16"
   }
