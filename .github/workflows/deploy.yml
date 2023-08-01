@@ -32,7 +32,7 @@ jobs:
           cp wasm/bazel-bin/lyra-wasm/lyra.wasm _site/
           cp wasm/bazel-bin/lyra-wasm/lyra.worker.js _site/
       - name: Upload files
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
       - name: Slack Notification
         if: failure()
         uses: rtCamp/action-slack-notify@v2
