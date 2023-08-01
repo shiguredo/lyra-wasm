@@ -16,7 +16,7 @@ devDependencies:
     version: 5.0.2(rollup@3.27.0)
   '@rollup/plugin-typescript':
     specifier: 11.1.2
-    version: 11.1.2(rollup@3.27.0)(typescript@5.1.6)
+    version: 11.1.2(rollup@3.27.0)(tslib@2.6.1)(typescript@5.1.6)
   '@types/emscripten':
     specifier: 1.39.7
     version: 1.39.7
@@ -47,6 +47,9 @@ devDependencies:
   serve:
     specifier: 14.2.0
     version: 14.2.0
+  tslib:
+    specifier: ^2.6.1
+    version: 2.6.1
   typescript:
     specifier: 5.1.6
     version: 5.1.6
@@ -190,7 +193,7 @@ packages:
       rollup: 3.27.0
     dev: true
 
-  /@rollup/plugin-typescript@11.1.2(rollup@3.27.0)(typescript@5.1.6):
+  /@rollup/plugin-typescript@11.1.2(rollup@3.27.0)(tslib@2.6.1)(typescript@5.1.6):
     resolution: {integrity: sha512-0ghSOCMcA7fl1JM+0gYRf+Q/HWyg+zg7/gDSc+fRLmlJWcW5K1I+CLRzaRhXf4Y3DRyPnnDo4M2ktw+a6JcDEg==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -206,6 +209,7 @@ packages:
       '@rollup/pluginutils': 5.0.2(rollup@3.27.0)
       resolve: 1.22.2
       rollup: 3.27.0
+      tslib: 2.6.1
       typescript: 5.1.6
     dev: true
 
@@ -1664,6 +1668,10 @@ packages:
       typescript: '>=4.2.0'
     dependencies:
       typescript: 5.1.6
+    dev: true
+
+  /tslib@2.6.1:
+    resolution: {integrity: sha512-t0hLfiEKfMUoqhG+U1oid7Pva4bbDPHYfJNiB7BiIjRkj1pyC++4N3huJfqY6aRH6VTB0rvtzQwjM4K6qpfOig==}
     dev: true
 
   /type-check@0.4.0:
