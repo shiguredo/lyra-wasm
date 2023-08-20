@@ -31,7 +31,7 @@
   ],
   "devDependencies": {
     "@rollup/plugin-commonjs": "25.0.4",
-    "@rollup/plugin-node-resolve": "15.1.0",
+    "@rollup/plugin-node-resolve": "15.2.0",
     "@rollup/plugin-replace": "5.0.2",
     "@rollup/plugin-typescript": "11.1.2",
     "@types/emscripten": "1.39.7",
