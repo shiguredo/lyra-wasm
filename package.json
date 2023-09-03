@@ -40,14 +40,14 @@
     "eslint": "8.48.0",
     "eslint-config-prettier": "8.10.0",
     "eslint-plugin-prettier": "5.0.0",
-    "prettier": "3.0.2",
+    "prettier": "3.0.3",
     "rollup": "3.28.1",
     "rollup-plugin-delete": "2.0.0",
     "serve": "14.2.1",
     "tslib": "^2.6.1",
     "typescript": "5.2.2"
   },
-  "packageManager": "pnpm@8.7.0",
+  "packageManager": "pnpm@8.7.1",
   "engines": {
     "node": ">=16"
   }
