@@ -41,7 +41,7 @@
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "5.0.0",
     "prettier": "3.0.3",
-    "rollup": "3.29.1",
+    "rollup": "3.29.2",
     "rollup-plugin-delete": "2.0.0",
     "serve": "14.2.1",
     "tslib": "^2.6.1",
