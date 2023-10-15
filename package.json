@@ -30,9 +30,9 @@
     "dist"
   ],
   "devDependencies": {
-    "@rollup/plugin-commonjs": "25.0.5",
+    "@rollup/plugin-commonjs": "25.0.7",
     "@rollup/plugin-node-resolve": "15.2.3",
-    "@rollup/plugin-replace": "5.0.3",
+    "@rollup/plugin-replace": "5.0.4",
     "@rollup/plugin-typescript": "11.1.5",
     "@types/emscripten": "1.39.8",
     "@typescript-eslint/eslint-plugin": "6.7.5",
