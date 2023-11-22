@@ -23,8 +23,8 @@ jobs:
           version: 8
       - run: pnpm --version
       - run: pnpm install
+      - run: pnpm run lint
       - run: pnpm run build
-      # - run: pnpm run lint
       - name: Slack Notification
         if: failure()
         uses: rtCamp/action-slack-notify@v2
