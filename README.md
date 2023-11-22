@@ -11,6 +11,16 @@ Lyra V2 ([google/lyra]) という低ビットレート音声コーデックを W
 
 [google/lyra]: https://github.com/google/lyra
 
+## About Shiguredo's open source software
+
+We will not respond to PRs or issues that have not been discussed on Discord. Also, Discord is only available in Japanese.
+
+Please read https://github.com/shiguredo/oss/blob/master/README.en.md before use.
+
+## 時雨堂のオープンソースソフトウェアについて
+
+利用前に https://github.com/shiguredo/oss をお読みください。
+
 ## 使い方
 
 ### JavaScript / TypeScript から利用する場合
@@ -93,16 +103,6 @@ $ curl -OL https://github.com/google/lyra/raw/v1.3.0/model_coeffs/soundstream_en
 Cross-Origin-Embedder-Policy: require-corp
 Cross-Origin-Opener-Policy: same-origin
 ```
-
-## About Shiguredo's open source software
-
-We will not respond to PRs or issues that have not been discussed on Discord. Also, Discord is only available in Japanese.
-
-Please read https://github.com/shiguredo/oss/blob/master/README.en.md before use.
-
-## 時雨堂のオープンソースソフトウェアについて
-
-利用前に https://github.com/shiguredo/oss をお読みください。
 
 ## 使い方
 
