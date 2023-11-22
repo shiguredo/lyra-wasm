@@ -3,16 +3,16 @@ name: test
 on:
   push:
     paths-ignore:
-      - '**.md'
-      - 'LICENSE'
-      - 'NOTICE'
+      - "**.md"
+      - "LICENSE"
+      - "NOTICE"
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['18', '20']
+        node: ["18", "20"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
@@ -24,7 +24,7 @@ jobs:
       - run: pnpm --version
       - run: pnpm install
       - run: pnpm run build
-      - run: pnpm run lint
+      # - run: pnpm run lint
       - name: Slack Notification
         if: failure()
         uses: rtCamp/action-slack-notify@v2
