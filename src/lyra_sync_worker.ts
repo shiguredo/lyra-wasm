@@ -125,50 +125,48 @@ self.onmessage = async function handleModuleMessage(msg: ModuleMessage) {
         self.postMessage({ type: `${msg.data.type}.result`, result: { error } })
       }
       break
-    case 'LyraModule.createEncoder':
-      {
-        const port = msg.data.port
-        try {
-          const manager = RESOURCE_MANAGER
-          if (manager === undefined) {
-            throw new Error('RESOURCE_MANAGER is undefined')
-          }
-          const options = msg.data.options
-          const encoder = manager.createEncoder(port, options)
-          port.onmessage = (msg) => {
-            handleEncoderMessage(manager, port, options, msg)
-          }
-          port.postMessage({
-            type: `${msg.data.type}.result`,
-            result: { frameSize: encoder.frameSize },
-          })
-        } catch (error) {
-          port.postMessage({ type: `${msg.data.type}.result`, result: { error } })
+    case 'LyraModule.createEncoder': {
+      const port = msg.data.port
+      try {
+        const manager = RESOURCE_MANAGER
+        if (manager === undefined) {
+          throw new Error('RESOURCE_MANAGER is undefined')
         }
-      }
-      break
-    case 'LyraModule.createDecoder':
-      {
-        const port = msg.data.port
-        try {
-          const manager = RESOURCE_MANAGER
-          if (manager === undefined) {
-            throw new Error('RESOURCE_MANAGER is undefined')
-          }
-          const options = msg.data.options
-          const decoder = manager.createDecoder(port, options)
-          port.onmessage = (msg) => {
-            handleDecoderMessage(manager, port, options, msg)
-          }
-          port.postMessage({
-            type: `${msg.data.type}.result`,
-            result: { frameSize: decoder.frameSize },
-          })
-        } catch (error) {
-          port.postMessage({ type: `${msg.data.type}.result`, result: { error } })
+        const options = msg.data.options
+        const encoder = manager.createEncoder(port, options)
+        port.onmessage = (msg) => {
+          handleEncoderMessage(manager, port, options, msg)
         }
+        port.postMessage({
+          type: `${msg.data.type}.result`,
+          result: { frameSize: encoder.frameSize },
+        })
+      } catch (error) {
+        port.postMessage({ type: `${msg.data.type}.result`, result: { error } })
       }
-      break
+    }
+    break
+    case 'LyraModule.createDecoder': {
+      const port = msg.data.port
+      try {
+        const manager = RESOURCE_MANAGER
+        if (manager === undefined) {
+          throw new Error('RESOURCE_MANAGER is undefined')
+        }
+        const options = msg.data.options
+        const decoder = manager.createDecoder(port, options)
+        port.onmessage = (msg) => {
+          handleDecoderMessage(manager, port, options, msg)
+        }
+        port.postMessage({
+          type: `${msg.data.type}.result`,
+          result: { frameSize: decoder.frameSize },
+        })
+      } catch (error) {
+        port.postMessage({ type: `${msg.data.type}.result`, result: { error } })
+      }
+    }
+    break
     default:
       console.warn('received unknown message')
       console.warn(msg)

@@ -9,18 +9,18 @@ import {
   SampleRate,
   NumberOfChannels,
   Bitrate,
-} from "./utils";
+} from './utils'
 
-const WEB_WORKER_SCRIPT = "__WEB_WORKER_SCRIPT__";
+const WEB_WORKER_SCRIPT = '__WEB_WORKER_SCRIPT__'
 
 /**
  * Lyra 用の WebAssembly ファイルやモデルファイルのロードや web worker の管理を行うためのクラス
  */
 class LyraModule {
-  private worker: Worker;
+  private worker: Worker
 
   private constructor(worker: Worker) {
-    this.worker = worker;
+    this.worker = worker
   }
 
   /**
@@ -35,37 +35,37 @@ class LyraModule {
     // chrome / firefox と safari で挙動が異なる（前者は COEP / COOP ヘッダが必要で、後者はそれがあるとエラーになる）ので
     // その問題を回避するために object url で worker を生成するようにする
     const webWorkerScriptObjectUrl = URL.createObjectURL(
-      new Blob([atob(WEB_WORKER_SCRIPT)], { type: "application/javascript" })
-    );
+      new Blob([atob(WEB_WORKER_SCRIPT)], { type: 'application/javascript' }),
+    )
     const worker = new Worker(webWorkerScriptObjectUrl, {
-      name: "lyra_sync_worker",
-    });
+      name: 'lyra_sync_worker',
+    })
 
     // 各種ファイルは web worker の中でロードされることになるので、
     // 事前に絶対 URL に変換しておく必要がある
-    const wasmUrl = new URL(wasmPath, document.location.href).toString();
-    const modelUrl = new URL(modelPath, document.location.href).toString();
+    const wasmUrl = new URL(wasmPath, document.location.href).toString()
+    const modelUrl = new URL(modelPath, document.location.href).toString()
 
     const promise: Promise<LyraModule> = new Promise((resolve, reject) => {
       type Response = {
-        data: { type: "LyraModule.load.result"; result: { error?: Error } };
-      };
+        data: { type: 'LyraModule.load.result'; result: { error?: Error } }
+      }
       worker.addEventListener(
-        "message",
+        'message',
         (res: Response) => {
-          const error = res.data.result.error;
+          const error = res.data.result.error
           if (error === undefined) {
-            resolve(new LyraModule(worker));
+            resolve(new LyraModule(worker))
           } else {
-            reject(error);
+            reject(error)
           }
         },
-        { once: true }
-      );
-    });
+        { once: true },
+      )
+    })
 
-    worker.postMessage({ type: "LyraModule.load", modelUrl, wasmUrl });
-    return promise;
+    worker.postMessage({ type: 'LyraModule.load', modelUrl, wasmUrl })
+    return promise
   }
 
   /**
@@ -82,35 +82,34 @@ class LyraModule {
    * @returns 生成された {@link LyraEncoder} インスタンス
    */
   createEncoder(options: LyraEncoderOptions = {}): Promise<LyraEncoder> {
-    const channel = new MessageChannel();
+    const channel = new MessageChannel()
 
     const promise: Promise<LyraEncoder> = new Promise((resolve, reject) => {
       type Response = {
         data: {
-          type: "LyraModule.createEncoder.result";
-          result: { frameSize: number } | { error: Error };
-        };
-      };
+          type: 'LyraModule.createEncoder.result'
+          result: { frameSize: number } | { error: Error }
+        }
+      }
       channel.port1.addEventListener(
-        "message",
+        'message',
         (res: Response) => {
-          const result = res.data.result;
-          if ("error" in result) {
-            reject(result.error);
+          const result = res.data.result
+          if ('error' in result) {
+            reject(result.error)
           } else {
-            resolve(new LyraEncoder(channel.port1, result.frameSize, options));
+            resolve(new LyraEncoder(channel.port1, result.frameSize, options))
           }
         },
-        { once: true }
-      );
-      channel.port1.start();
-    });
+        { once: true },
+      )
+      channel.port1.start()
+    })
 
-    this.worker.postMessage(
-      { type: "LyraModule.createEncoder", port: channel.port2, options },
-      [channel.port2]
-    );
-    return promise;
+    this.worker.postMessage({ type: 'LyraModule.createEncoder', port: channel.port2, options }, [
+      channel.port2,
+    ])
+    return promise
   }
 
   /**
@@ -127,35 +126,34 @@ class LyraModule {
    * @returns 生成された {@link LyraDecoder} インスタンス
    */
   createDecoder(options: LyraDecoderOptions = {}): Promise<LyraDecoder> {
-    const channel = new MessageChannel();
+    const channel = new MessageChannel()
 
     const promise: Promise<LyraDecoder> = new Promise((resolve, reject) => {
       type Response = {
         data: {
-          type: "LyraModule.createDecoder.result";
-          result: { frameSize: number } | { error: Error };
-        };
-      };
+          type: 'LyraModule.createDecoder.result'
+          result: { frameSize: number } | { error: Error }
+        }
+      }
       channel.port1.addEventListener(
-        "message",
+        'message',
         (res: Response) => {
-          const result = res.data.result;
-          if ("error" in result) {
-            reject(result.error);
+          const result = res.data.result
+          if ('error' in result) {
+            reject(result.error)
           } else {
-            resolve(new LyraDecoder(channel.port1, result.frameSize, options));
+            resolve(new LyraDecoder(channel.port1, result.frameSize, options))
           }
         },
-        { once: true }
-      );
-      channel.port1.start();
-    });
+        { once: true },
+      )
+      channel.port1.start()
+    })
 
-    this.worker.postMessage(
-      { type: "LyraModule.createDecoder", port: channel.port2, options },
-      [channel.port2]
-    );
-    return promise;
+    this.worker.postMessage({ type: 'LyraModule.createDecoder', port: channel.port2, options }, [
+      channel.port2,
+    ])
+    return promise
   }
 }
 
@@ -165,12 +163,12 @@ class LyraModule {
  * 詳細は {@link LyraEncoder.fromState()} を参照
  */
 interface LyraEncoderState {
-  port: MessagePort;
-  sampleRate: SampleRate;
-  numberOfChannels: NumberOfChannels;
-  bitrate: Bitrate;
-  enableDtx: boolean;
-  frameSize: number;
+  port: MessagePort
+  sampleRate: SampleRate
+  numberOfChannels: NumberOfChannels
+  bitrate: Bitrate
+  enableDtx: boolean
+  frameSize: number
 }
 
 /**
@@ -179,10 +177,10 @@ interface LyraEncoderState {
  * 詳細は {@link LyraDecoder.fromState()} を参照
  */
 interface LyraDecoderState {
-  port: MessagePort;
-  sampleRate: SampleRate;
-  numberOfChannels: NumberOfChannels;
-  frameSize: number;
+  port: MessagePort
+  sampleRate: SampleRate
+  numberOfChannels: NumberOfChannels
+  frameSize: number
 }
 
 /**
@@ -192,47 +190,43 @@ class LyraEncoder {
   /**
    * wasm でのエンコード処理を実行する web worker と通信するためのポート
    */
-  readonly port: MessagePort;
+  readonly port: MessagePort
 
   /**
    * 現在のサンププリングレート
    */
-  readonly sampleRate: SampleRate;
+  readonly sampleRate: SampleRate
 
   /**
    * 現在のチャネル数
    */
-  readonly numberOfChannels: NumberOfChannels;
+  readonly numberOfChannels: NumberOfChannels
 
   /**
    * 現在のエンコードビットレート
    */
-  readonly bitrate: Bitrate;
+  readonly bitrate: Bitrate
 
   /**
    * DTX が有効になっているかどうか
    */
-  readonly enableDtx: boolean;
+  readonly enableDtx: boolean
 
   /**
    * 一つのフレーム（{@link LyraEncoder.encode} メソッドに渡す音声データ）に含めるサンプル数
    */
-  readonly frameSize: number;
+  readonly frameSize: number
 
   /**
    * @internal
    */
-  constructor(
-    port: MessagePort,
-    frameSize: number,
-    options: LyraEncoderOptions
-  ) {
-    this.port = port;
-    this.frameSize = frameSize;
-    this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
-    this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
-    this.bitrate = options.bitrate || DEFAULT_BITRATE;
-    this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX;
+  constructor(port: MessagePort, frameSize: number, options: LyraEncoderOptions) {
+    this.port = port
+    this.frameSize = frameSize
+    this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE
+    this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS
+    this.bitrate = options.bitrate || DEFAULT_BITRATE
+    this.enableDtx = options.enableDtx || DEFAULT_ENABLE_DTX
   }
 
   /**
@@ -252,43 +246,37 @@ class LyraEncoder {
    * - その他、何らかの理由でエンコードに失敗した場合
    */
   encode(audioData: Int16Array): Promise<Uint8Array | undefined> {
-    const promise: Promise<Uint8Array | undefined> = new Promise(
-      (resolve, reject) => {
-        type Response = {
-          data: {
-            type: "LyraEncoder.encode.result";
-            result:
-              | { encodedAudioData: Uint8Array | undefined }
-              | { error: Error };
-          };
-        };
-        this.port.addEventListener(
-          "message",
-          (res: Response) => {
-            const result = res.data.result;
-            if ("error" in result) {
-              reject(result.error);
-            } else {
-              resolve(result.encodedAudioData);
-            }
-          },
-          { once: true }
-        );
+    const promise: Promise<Uint8Array | undefined> = new Promise((resolve, reject) => {
+      type Response = {
+        data: {
+          type: 'LyraEncoder.encode.result'
+          result: { encodedAudioData: Uint8Array | undefined } | { error: Error }
+        }
       }
-    );
+      this.port.addEventListener(
+        'message',
+        (res: Response) => {
+          const result = res.data.result
+          if ('error' in result) {
+            reject(result.error)
+          } else {
+            resolve(result.encodedAudioData)
+          }
+        },
+        { once: true },
+      )
+    })
 
-    this.port.postMessage({ type: "LyraEncoder.encode", audioData }, [
-      audioData.buffer,
-    ]);
-    return promise;
+    this.port.postMessage({ type: 'LyraEncoder.encode', audioData }, [audioData.buffer])
+    return promise
   }
 
   /**
    * エンコーダ用に確保したリソースを解放する
    */
   destroy(): void {
-    this.port.postMessage({ type: "LyraEncoder.destroy" });
-    this.port.close();
+    this.port.postMessage({ type: 'LyraEncoder.destroy' })
+    this.port.close()
   }
 
   /**
@@ -304,8 +292,8 @@ class LyraEncoder {
    * @return 復元されたエンコーダ
    */
   static fromState(state: LyraEncoderState): LyraEncoder {
-    state.port.start();
-    return new LyraEncoder(state.port, state.frameSize, state);
+    state.port.start()
+    return new LyraEncoder(state.port, state.frameSize, state)
   }
 }
 
@@ -316,35 +304,31 @@ class LyraDecoder {
   /**
    * wasm でのデコード処理を実行する web worker と通信するためのポート
    */
-  readonly port: MessagePort;
+  readonly port: MessagePort
 
   /**
    * 現在のサンププリングレート
    */
-  readonly sampleRate: SampleRate;
+  readonly sampleRate: SampleRate
 
   /**
    * 現在のチャネル数
    */
-  readonly numberOfChannels: NumberOfChannels;
+  readonly numberOfChannels: NumberOfChannels
 
   /**
    * 一つのフレーム（{@link LyraEncoder.decode} メソッドの返り値の音声データ）に含まれるサンプル数
    */
-  readonly frameSize: number;
+  readonly frameSize: number
 
   /**
    * @internal
    */
-  constructor(
-    port: MessagePort,
-    frameSize: number,
-    options: LyraDecoderOptions
-  ) {
-    this.port = port;
-    this.frameSize = frameSize;
-    this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE;
-    this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS;
+  constructor(port: MessagePort, frameSize: number, options: LyraDecoderOptions) {
+    this.port = port
+    this.frameSize = frameSize
+    this.sampleRate = options.sampleRate || DEFAULT_SAMPLE_RATE
+    this.numberOfChannels = options.numberOfChannels || DEFAULT_CHANNELS
   }
 
   /**
@@ -361,40 +345,40 @@ class LyraDecoder {
     const promise: Promise<Int16Array> = new Promise((resolve, reject) => {
       type Response = {
         data: {
-          type: "LyraDecoder.decode.result";
-          result: { audioData: Int16Array } | { error: Error };
-        };
-      };
+          type: 'LyraDecoder.decode.result'
+          result: { audioData: Int16Array } | { error: Error }
+        }
+      }
       this.port.addEventListener(
-        "message",
+        'message',
         (res: Response) => {
-          const result = res.data.result;
-          if ("error" in result) {
-            reject(result.error);
+          const result = res.data.result
+          if ('error' in result) {
+            reject(result.error)
           } else {
-            resolve(result.audioData);
+            resolve(result.audioData)
           }
         },
-        { once: true }
-      );
-    });
+        { once: true },
+      )
+    })
 
     if (encodedAudioData === undefined) {
-      this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData });
+      this.port.postMessage({ type: 'LyraDecoder.decode', encodedAudioData })
     } else {
-      this.port.postMessage({ type: "LyraDecoder.decode", encodedAudioData }, [
+      this.port.postMessage({ type: 'LyraDecoder.decode', encodedAudioData }, [
         encodedAudioData.buffer,
-      ]);
+      ])
     }
-    return promise;
+    return promise
   }
 
   /**
    * デコーダ用に確保したリソースを解放する
    */
   destroy(): void {
-    this.port.postMessage({ type: "LyraDecoder.destroy" });
-    this.port.close();
+    this.port.postMessage({ type: 'LyraDecoder.destroy' })
+    this.port.close()
   }
 
   /**
@@ -410,8 +394,8 @@ class LyraDecoder {
    * @return 復元されたデコーダ
    */
   static fromState(state: LyraDecoderState): LyraDecoder {
-    state.port.start();
-    return new LyraDecoder(state.port, state.frameSize, state);
+    state.port.start()
+    return new LyraDecoder(state.port, state.frameSize, state)
   }
 }
 
@@ -427,4 +411,4 @@ export {
   SampleRate,
   NumberOfChannels,
   Bitrate,
-};
+}
